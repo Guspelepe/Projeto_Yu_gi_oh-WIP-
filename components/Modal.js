@@ -1,23 +1,23 @@
-// src/components/Modal.js
+// components/Modal.js
+
+import { isFavorito, adicionarFavorito, removerFavorito } from '../utils/storage.js';
 
 export class Modal {
   constructor() {
     this.modal = null;
     this.overlay = null;
+    this.cartaAtual = null;
     this.criarEstrutura();
   }
 
   criarEstrutura() {
-    // Cria o overlay
     this.overlay = document.createElement('div');
     this.overlay.className = 'modal-overlay';
     this.overlay.style.display = 'none';
 
-    // Cria o modal
     this.modal = document.createElement('div');
     this.modal.className = 'modal-container';
     
-    // Conteúdo do modal
     this.modal.innerHTML = `
       <button class="modal-fechar">✕</button>
       <div class="modal-conteudo">
@@ -39,7 +39,7 @@ export class Modal {
             <p class="modal-texto-descricao"></p>
           </div>
           <div class="modal-acoes">
-            <button class="modal-favoritar">❤️ Favoritar</button>
+            <button class="modal-favoritar">🤍 Favoritar</button>
             <button class="modal-adicionar-deck">➕ Adicionar ao Deck</button>
           </div>
         </div>
@@ -49,13 +49,11 @@ export class Modal {
     this.overlay.appendChild(this.modal);
     document.body.appendChild(this.overlay);
 
-    // Evento para fechar
+    // Fechar modal
     this.modal.querySelector('.modal-fechar').addEventListener('click', () => this.fechar());
     this.overlay.addEventListener('click', (e) => {
       if (e.target === this.overlay) this.fechar();
     });
-
-    // Evento ESC para fechar
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && this.overlay.style.display !== 'none') {
         this.fechar();
@@ -64,6 +62,8 @@ export class Modal {
   }
 
   abrir(carta) {
+    this.cartaAtual = carta;
+
     // Preenche os dados
     this.modal.querySelector('.modal-imagem').src = carta.card_images[0].image_url;
     this.modal.querySelector('.modal-nome').textContent = carta.name;
@@ -75,35 +75,24 @@ export class Modal {
     this.modal.querySelector('.modal-raca').textContent = carta.race || '?';
     this.modal.querySelector('.modal-texto-descricao').textContent = carta.desc || 'Sem descrição';
 
-    // Aplica cor de fundo baseada no atributo
+    // Cor de fundo por atributo
     const cor = this.obterCorAtributo(carta.attribute);
     this.modal.style.setProperty('--modal-cor', cor);
 
-    // Mostra o modal com animação
+    // Configura botão favoritar
+    this.configurarBotaoFavoritar();
+
+    // TODO: botão de deck (futuro)
+    const btnDeck = this.modal.querySelector('.modal-adicionar-deck');
+    const novoBtnDeck = btnDeck.cloneNode(true);
+    btnDeck.parentNode.replaceChild(novoBtnDeck, btnDeck);
+    novoBtnDeck.addEventListener('click', () => {
+      alert(`Carta "${carta.name}" adicionada ao deck! (em breve)`);
+    });
+
+    // Mostra o modal
     this.overlay.style.display = 'flex';
     this.modal.classList.add('modal-aberto');
-
-    // Eventos dos botões (você pode implementar depois)
-    const btnFavoritar = this.modal.querySelector('.modal-favoritar');
-    const btnDeck = this.modal.querySelector('.modal-adicionar-deck');
-    
-    // Remove listeners antigos clonando e substituindo
-    const novoBtnFav = btnFavoritar.cloneNode(true);
-    const novoBtnDeck = btnDeck.cloneNode(true);
-    btnFavoritar.parentNode.replaceChild(novoBtnFav, btnFavoritar);
-    btnDeck.parentNode.replaceChild(novoBtnDeck, btnDeck);
-
-    novoBtnFav.addEventListener('click', () => {
-      // TODO: Implementar favoritos
-      alert(`Carta "${carta.name}" favoritada!`);
-    });
-
-    novoBtnDeck.addEventListener('click', () => {
-      // TODO: Implementar deck
-      alert(`Carta "${carta.name}" adicionada ao deck!`);
-    });
-
-    // Dispara evento para efeitos sonoros
     document.dispatchEvent(new CustomEvent('modalAberto', { detail: { carta } }));
   }
 
@@ -111,6 +100,42 @@ export class Modal {
     this.overlay.style.display = 'none';
     this.modal.classList.remove('modal-aberto');
     document.dispatchEvent(new CustomEvent('modalFechado'));
+  }
+
+  configurarBotaoFavoritar() {
+    const btn = this.modal.querySelector('.modal-favoritar');
+    const id = this.cartaAtual.id;
+    const isFav = isFavorito(id);
+
+    // Atualiza texto/estilo
+    this.atualizarBotaoFavoritar(btn, isFav);
+
+    // Remove listener antigo (clonando)
+    const novoBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(novoBtn, btn);
+
+    novoBtn.addEventListener('click', () => {
+      const agoraFavorito = isFavorito(id);
+      if (agoraFavorito) {
+        removerFavorito(id);
+        this.atualizarBotaoFavoritar(novoBtn, false);
+        document.dispatchEvent(new CustomEvent('favoritoRemovido', { detail: { cartaId: id } }));
+      } else {
+        adicionarFavorito(id);
+        this.atualizarBotaoFavoritar(novoBtn, true);
+        document.dispatchEvent(new CustomEvent('favoritoAdicionado', { detail: { carta: this.cartaAtual } }));
+      }
+    });
+  }
+
+  atualizarBotaoFavoritar(botao, isFav) {
+    if (isFav) {
+      botao.textContent = '❤️ Favoritado';
+      botao.style.background = 'linear-gradient(135deg, #ff6b6b, #c0392b)';
+    } else {
+      botao.textContent = '🤍 Favoritar';
+      botao.style.background = 'linear-gradient(135deg, #ff6b6b, #ee5a24)';
+    }
   }
 
   obterCorAtributo(atributo) {

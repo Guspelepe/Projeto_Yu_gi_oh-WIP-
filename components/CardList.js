@@ -1,50 +1,37 @@
-// src/components/CardList.js
+// components/CardList.js
 
 import { criarCard } from './Card.js';
 
 export class CardList {
-  constructor(container, onCardClick, itemsPerPage = 12) {
+  constructor(container, onCardClick) {
     this.container = container;
-    this.itemsPerPage = itemsPerPage;
     this.onCardClick = onCardClick;
     this.cartas = [];
-    this.paginaAtual = 0;
     this.totalPaginas = 0;
+    this.paginaAtual = 0;
   }
 
-  setCartas(cartas) {
+  // Define as cartas e renderiza (sem slice, pois já vem paginado)
+  setCartas(cartas, totalPaginas = 1) {
     this.cartas = cartas;
-    this.totalPaginas = Math.ceil(this.cartas.length / this.itemsPerPage);
-    this.paginaAtual = 0;
+    this.totalPaginas = totalPaginas;
     this.renderizar();
   }
 
+  // Renderiza as cartas atuais (sem slice)
   renderizar() {
-    const inicio = this.paginaAtual * this.itemsPerPage;
-    const fim = inicio + this.itemsPerPage;
-    const paginaCartas = this.cartas.slice(inicio, fim);
-
     this.container.innerHTML = '';
-    paginaCartas.forEach(carta => {
+    if (!this.cartas || this.cartas.length === 0) {
+      this.container.innerHTML = '<p class="sem-resultados">Nenhuma carta encontrada.</p>';
+      return;
+    }
+
+    this.cartas.forEach(carta => {
       const cardElement = criarCard(carta, this.onCardClick);
       this.container.appendChild(cardElement);
     });
 
     this.atualizarPaginacao();
-  }
-
-  proxima() {
-    if (this.paginaAtual < this.totalPaginas - 1) {
-      this.paginaAtual++;
-      this.renderizar();
-    }
-  }
-
-  anterior() {
-    if (this.paginaAtual > 0) {
-      this.paginaAtual--;
-      this.renderizar();
-    }
   }
 
   atualizarPaginacao() {

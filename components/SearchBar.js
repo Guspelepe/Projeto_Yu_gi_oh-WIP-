@@ -1,14 +1,11 @@
-// src/components/SearchBar.js
-
-import { buscarCartas } from '../api/yugioh.js';
+// components/SearchBar.js
 
 export class SearchBar {
   constructor(inputSelector, buttonSelector, filtroSelectors, onSearchCallback) {
     this.input = document.querySelector(inputSelector);
     this.button = document.querySelector(buttonSelector);
     this.filtros = {};
-    
-    // Mapeia os selects para objetos
+
     if (filtroSelectors) {
       Object.keys(filtroSelectors).forEach(key => {
         this.filtros[key] = document.querySelector(filtroSelectors[key]);
@@ -23,6 +20,13 @@ export class SearchBar {
     // Enter no campo de busca
     this.input.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') this.buscar();
+    });
+
+    // Evento de mudança nos filtros (opcional)
+    Object.values(this.filtros).forEach(filtro => {
+      if (filtro && filtro.tagName === 'SELECT') {
+        filtro.addEventListener('change', () => this.buscar());
+      }
     });
   }
 
@@ -39,11 +43,13 @@ export class SearchBar {
     });
 
     try {
-      const cartas = await buscarCartas(params);
-      if (this.onSearch) this.onSearch(cartas);
+      // Em vez de buscar aqui, delegamos para o callback
+      if (this.onSearch) {
+        // Passamos os parâmetros e deixamos o main.js lidar com a paginação
+        this.onSearch(params);
+      }
     } catch (error) {
       console.error('Erro na busca:', error);
-      alert('Erro ao buscar cartas. Tente novamente.');
     }
   }
 }

@@ -1,21 +1,26 @@
 // components/Card.js
 
+import { isFavorito } from '../utils/storage.js';
+
 export function criarCard(carta, onCardClick) {
   const li = document.createElement('li');
   li.className = 'cartao';
   li.dataset.id = carta.id;
 
-  // Define a classe de fundo baseada no atributo
   const fundoClasse = obterFundoPorAtributo(carta.attribute);
   li.classList.add(fundoClasse);
 
-  // Nível (estrelas) – opcional, pode manter ou remover
+  const favorito = isFavorito(carta.id);
   const estrelas = carta.level ? '★'.repeat(carta.level) : '';
+
+  // Usa imagem pequena se disponível
+  const imagemUrl = carta.card_images[0].image_url_small || carta.card_images[0].image_url;
 
   li.innerHTML = `
     <div class="carta-container">
+      ${favorito ? '<div class="carta-favorito-icone">❤️</div>' : ''}
       <div class="carta-imagem-wrapper">
-        <img src="${carta.card_images[0].image_url}" 
+        <img src="${imagemUrl}" 
              alt="${carta.name}" 
              class="carta-imagem"
              loading="lazy" />
@@ -28,7 +33,6 @@ export function criarCard(carta, onCardClick) {
     </div>
   `;
 
-  // Clique abre o modal (e não vira mais)
   li.addEventListener('click', (e) => {
     e.stopPropagation();
     if (onCardClick) onCardClick(carta);
