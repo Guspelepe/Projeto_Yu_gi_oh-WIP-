@@ -91,7 +91,8 @@ function realizarBusca() {
   if (tipo && tipo !== 'all') params.type = tipo;
   if (nivel && nivel !== 'all') params.level = nivel;
 
-  // Se não houver filtro, busca SEM termo (todas as cartas)
+  // Mostra a paginação ao buscar
+  mostrarPaginacao();
   carregarCartas(params, 0);
 }
 
@@ -183,6 +184,7 @@ document.getElementById('btn-favoritos').addEventListener('click', () => {
     btnProximo.disabled = true;
     return;
   }
+  esconderPaginacao();
   cardList.setCartas(favoritos, 1);
   contadorPagina.textContent = `❤️ ${favoritos.length} favoritos`;
   btnAnterior.disabled = true;
@@ -190,6 +192,7 @@ document.getElementById('btn-favoritos').addEventListener('click', () => {
 });
 
 document.getElementById('btn-todos').addEventListener('click', () => {
+  mostrarPaginacao();
   realizarBusca();
 });
 
@@ -199,8 +202,20 @@ document.getElementById('btn-decks').addEventListener('click', () => {
   if (!deckListUI) {
     deckListUI = new DeckListUI(container, abrirModal);
   }
+  esconderPaginacao();
   deckListUI.renderizarLista();
 });
+
+// ===== CONTROLE DE PAGINAÇÃO =====
+function esconderPaginacao() {
+  const paginacao = document.getElementById('paginacao');
+  if (paginacao) paginacao.style.display = 'none';
+}
+
+function mostrarPaginacao() {
+  const paginacao = document.getElementById('paginacao');
+  if (paginacao) paginacao.style.display = 'flex';
+}
 
 // ===== CARREGAMENTO INICIAL =====
 // A barra de pesquisa fica vazia
@@ -215,4 +230,30 @@ carregarCartas({}, 0);
 document.addEventListener('paginaAtualizada', () => {
   atualizarContador();
   atualizarBotoes();
+});
+
+// ===== MODO ESCURO / CLARO =====
+const btnTema = document.getElementById('btn-tema');
+const temaSalvo = localStorage.getItem('tema') || 'light';
+
+// Aplica o tema salvo
+if (temaSalvo === 'dark') {
+  document.documentElement.setAttribute('data-theme', 'dark');
+  btnTema.textContent = '☀️';
+} else {
+  document.documentElement.removeAttribute('data-theme');
+  btnTema.textContent = '🌙';
+}
+
+btnTema?.addEventListener('click', () => {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (isDark) {
+    document.documentElement.removeAttribute('data-theme');
+    localStorage.setItem('tema', 'light');
+    btnTema.textContent = '🌙';
+  } else {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    localStorage.setItem('tema', 'dark');
+    btnTema.textContent = '☀️';
+  }
 });

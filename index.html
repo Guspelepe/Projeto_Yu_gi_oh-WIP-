@@ -1,74 +1,80 @@
-<!DOCTYPE html>
+filtros<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Yu-Gi-Oh! Pokedex</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   
   <!-- CSS -->
+  <link rel="stylesheet" href="src/css/deck.css" />
   <link rel="stylesheet" href="src/css/reset.css" />
   <link rel="stylesheet" href="src/css/fontes.css" />
   <link rel="stylesheet" href="src/css/estilos.css" />
   <link rel="stylesheet" href="src/css/responsivo.css" />
-  <link rel="stylesheet" href="src/css/deck.css" />
+  <link rel="stylesheet" href="src/css/temas.css" />
 </head>
 <body>
   <header class="cabecalho">
-    <h1 class="titulo">Yu-Gi-Oh! Pokedex</h1>
+    <header class="cabecalho">
+      <h1 class="titulo">Yu-Gi-Oh! Pokedex</h1>
+      <button id="btn-tema" class="btn-tema" aria-label="Alternar tema">
+        🌙
+      </button>
+    </header>
   </header>
   
   <main>
-    <!-- Barra de pesquisa -->
-    <div id="filtros">
-      <input type="text" id="input-nome" placeholder="Buscar por nome..." />
-      
-      <select id="filtro-atributo">
-        <option value="all">Todos atributos</option>
-        <option value="DARK">Trevas</option>
-        <option value="LIGHT">Luz</option>
-        <option value="FIRE">Fogo</option>
-        <option value="WATER">Água</option>
-        <option value="EARTH">Terra</option>
-        <option value="WIND">Vento</option>
-        <option value="DIVINE">Divino</option>
-      </select>
+  <div id="filtros">
+    <input type="text" id="input-nome" placeholder="Buscar..." />
+    
+    <select id="filtro-atributo">
+      <option value="all">Atributo</option>
+      <option value="DARK">Trevas</option>
+      <option value="LIGHT">Luz</option>
+      <option value="FIRE">Fogo</option>
+      <option value="WATER">Água</option>
+      <option value="EARTH">Terra</option>
+      <option value="WIND">Vento</option>
+      <option value="DIVINE">Divino</option>
+    </select>
 
-      <select id="filtro-tipo">
-        <option value="all">Todos tipos</option>
-        <option value="Normal Monster">Monstro Normal</option>
-        <option value="Effect Monster">Monstro de Efeito</option>
-        <option value="Fusion Monster">Monstro de Fusão</option>
-        <option value="Synchro Monster">Monstro Sincro</option>
-        <option value="XYZ Monster">Monstro XYZ</option>
-        <option value="Link Monster">Monstro Link</option>
-        <option value="Pendulum Monster">Monstro Pêndulo</option>
-        <option value="Ritual Monster">Monstro Ritual</option>
-        <option value="Spell Card">Carta Mágica</option>
-        <option value="Trap Card">Carta Armadilha</option>
-      </select>
+    <select id="filtro-tipo">
+      <option value="all">Tipo</option>
+      <option value="Normal Monster">Monstro Normal</option>
+      <option value="Effect Monster">Monstro de Efeito</option>
+      <option value="Fusion Monster">Monstro de Fusão</option>
+      <option value="Synchro Monster">Monstro Sincro</option>
+      <option value="XYZ Monster">Monstro XYZ</option>
+      <option value="Link Monster">Monstro Link</option>
+      <option value="Pendulum Monster">Monstro Pêndulo</option>
+      <option value="Ritual Monster">Monstro Ritual</option>
+      <option value="Spell Card">Mágica</option>
+      <option value="Trap Card">Armadilha</option>
+    </select>
 
-      <select id="filtro-nivel">
-        <option value="all">Todos níveis</option>
-        <option value="1">⭐ 1</option>
-        <option value="2">⭐⭐ 2</option>
-        <option value="3">⭐⭐⭐ 3</option>
-        <option value="4">⭐⭐⭐⭐ 4</option>
-        <option value="5">⭐⭐⭐⭐⭐ 5</option>
-        <option value="6">⭐⭐⭐⭐⭐⭐ 6</option>
-        <option value="7">⭐⭐⭐⭐⭐⭐⭐ 7</option>
-        <option value="8">⭐⭐⭐⭐⭐⭐⭐⭐ 8</option>
-        <option value="9">⭐⭐⭐⭐⭐⭐⭐⭐⭐ 9</option>
-        <option value="10">⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ 10</option>
-        <option value="11">11</option>
-        <option value="12">12</option>
-      </select>
+    <select id="filtro-nivel">
+      <option value="all">Nível</option>
+      <option value="1">★1</option>
+      <option value="2">★★2</option>
+      <option value="3">★★★3</option>
+      <option value="4">★★★★4</option>
+      <option value="5">★★★★★5</option>
+      <option value="6">★★★★★★6</option>
+      <option value="7">★★★★★★★7</option>
+      <option value="8">★★★★★★★★8</option>
+      <option value="9">★★★★★★★★★9</option>
+      <option value="10">★★★★★★★★★★10</option>
+      <option value="11">11</option>
+      <option value="12">12</option>
+    </select>
 
-      <button id="btn-limpar-filtros">🧹 Limpar</button>
-      <button id="btn-buscar">Buscar</button>
-      <button id="btn-favoritos">❤️ Favoritos</button>
-      <button id="btn-todos">📚 Todos</button>
-      <button id="btn-decks">📚 Meus Decks</button>
-    </div>
+    <button id="btn-limpar-filtros" title="Limpar filtros">🧹</button>
+    <button id="btn-buscar">Buscar</button>
+    <button id="btn-favoritos">❤️</button>
+    <button id="btn-todos">📚</button>
+    <button id="btn-decks">📚 Decks</button>
+  </div>
 
     <!-- Container das cartas -->
     <ul class="lista-personagens" id="lista-cartas"></ul>

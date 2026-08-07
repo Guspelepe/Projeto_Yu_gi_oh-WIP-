@@ -10,10 +10,22 @@ export class DeckListUI {
     this.onCardClick = onCardClick;
     this.deckManager = new DeckManager();
     this.deckAtual = null;
+    this.editor = null;
   }
 
   renderizarLista() {
     const decks = this.deckManager.listarDecks();
+
+    // 🔥 CORREÇÃO DO LAYOUT: Força o container a ser block para o grid funcionar
+    this.container.style.cssText = `
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 0 20px !important;
+      margin: 0 auto !important;
+      box-sizing: border-box !important;
+    `;
+
     if (decks.length === 0) {
       this.container.innerHTML = `
         <div class="deck-lista-vazia">
@@ -34,11 +46,16 @@ export class DeckListUI {
       const qtd = deck.cartas.length;
       html += `
         <div class="deck-item" data-index="${index}">
+          <div class="deck-item-capa">
+            ${deck.capa ? `<img src="${deck.capa.image_url}" alt="${deck.capa.name}" title="${deck.capa.name}" />` : '<div class="deck-sem-capa">📚</div>'}
+          </div>
           <h3>${deck.nome}</h3>
           <p>${qtd}/80 cartas</p>
           <div class="deck-acoes">
             <button class="btn-abrir-deck" data-index="${index}">Abrir</button>
-            <button class="btn-renomear-deck" data-index="${index}">✏️</button>
+            <button class="btn-editar-deck" data-index="${index}">✏️ Editar</button>
+            <button class="btn-duplicar-deck" data-index="${index}">📋 Duplicar</button>
+            <button class="btn-aleatorio-deck" data-index="${index}">🎲 Aleatório</button>
             <button class="btn-excluir-deck" data-index="${index}">🗑️</button>
           </div>
         </div>
@@ -48,6 +65,20 @@ export class DeckListUI {
     html += `</div></div>`;
     this.container.innerHTML = html;
 
+    // 🔥 FORÇA O GRID COM TAMANHO MÍNIMO DE 230px
+    const grid = this.container.querySelector('.deck-grid');
+    if (grid) {
+      grid.style.cssText = `
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)) !important;
+        gap: 24px !important;
+        margin-top: 16px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      `;
+    }
+
+    // Eventos
     this.container.querySelector('.btn-criar-deck')?.addEventListener('click', () => this.criarNovoDeck());
     this.container.querySelectorAll('.btn-abrir-deck').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -55,14 +86,22 @@ export class DeckListUI {
         this.abrirDeck(idx);
       });
     });
-    this.container.querySelectorAll('.btn-renomear-deck').forEach(btn => {
+    this.container.querySelectorAll('.btn-editar-deck').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const idx = parseInt(e.target.dataset.index);
+        await this.abrirEditor(idx);
+      });
+    });
+    this.container.querySelectorAll('.btn-duplicar-deck').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const idx = parseInt(e.target.dataset.index);
-        const novoNome = prompt('Novo nome:', this.deckManager.decks[idx].nome);
-        if (novoNome !== null) {
-          this.deckManager.renomearDeck(idx, novoNome);
-          this.renderizarLista();
-        }
+        this.duplicarDeck(idx);
+      });
+    });
+    this.container.querySelectorAll('.btn-aleatorio-deck').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt(e.target.dataset.index);
+        this.preencherAleatorio(idx);
       });
     });
     this.container.querySelectorAll('.btn-excluir-deck').forEach(btn => {
@@ -73,20 +112,104 @@ export class DeckListUI {
     });
   }
 
-  criarNovoDeck() {
+  // ===== CRIAR DECK =====
+  async criarNovoDeck() {
     const nome = prompt('Digite o nome do novo deck:');
-    if (nome !== null) {
-      this.deckManager.criarDeck(nome);
-      this.renderizarLista();
+    if (nome === null) return;
+    const nomeCapa = prompt('Digite o nome da carta que será a capa (opcional):');
+    let capa = null;
+    if (nomeCapa && nomeCapa.trim() !== '') {
+      try {
+        const resultado = await buscarCartas({ name: nomeCapa.trim() }, 0, 1);
+        const cartas = resultado.data || [];
+        if (cartas.length > 0) {
+          capa = {
+            id: cartas[0].id,
+            name: cartas[0].name,
+            image_url: cartas[0].card_images[0].image_url,
+          };
+          alert(`✅ Capa definida: ${capa.name}`);
+        } else {
+          alert('⚠️ Nenhuma carta encontrada.');
+        }
+      } catch (error) {
+        console.error(error);
+        alert('Erro ao buscar carta.');
+      }
+    }
+    if (this.deckManager.criarDeck(nome, capa)) this.renderizarLista();
+  }
+
+  // ===== DUPLICAR DECK =====
+  duplicarDeck(index) {
+    const deck = this.deckManager.getDeck(index);
+    if (!deck) return;
+    const novoNome = prompt('Nome do deck duplicado:', deck.nome + ' (cópia)');
+    if (novoNome !== null && novoNome.trim() !== '') {
+      if (this.deckManager.duplicarDeck(index, novoNome.trim())) {
+        this.renderizarLista();
+      }
     }
   }
 
+  // ===== PREENCHER ALEATÓRIO =====
+  preencherAleatorio(index) {
+    const deck = this.deckManager.getDeck(index);
+    if (!deck) return;
+
+    // Usa o cache global do main.js (se disponível)
+    let cache = window.__cacheCartas || [];
+    if (cache.length === 0) {
+      alert('Nenhuma carta carregada. Faça uma busca primeiro.');
+      return;
+    }
+
+    const quantidade = parseInt(prompt('Quantas cartas adicionar? (máx 80, padrão 40)', '40')) || 40;
+    const limite = Math.min(quantidade, 80 - deck.cartas.length);
+
+    if (limite <= 0) {
+      alert('O deck já está cheio (80/80).');
+      return;
+    }
+
+    // Embaralha e seleciona
+    const shuffled = [...cache].sort(() => Math.random() - 0.5);
+    const selecionadas = shuffled.slice(0, limite);
+
+    let adicionadas = 0;
+    selecionadas.forEach(carta => {
+      const qtd = deck.cartas.filter(c => c.id === carta.id).length;
+      if (qtd < 3 && deck.cartas.length < 80) {
+        this.deckManager.adicionarCarta(index, carta);
+        adicionadas++;
+      }
+    });
+
+    alert(`✅ ${adicionadas} cartas adicionadas a "${deck.nome}"!`);
+    this.renderizarLista();
+  }
+
+  // ===== EDITOR =====
+  async abrirEditor(index) {
+    if (!this.editor) {
+      const editorContainer = document.createElement('div');
+      editorContainer.id = 'deck-editor-container';
+      editorContainer.style.display = 'none';
+      this.container.parentNode.appendChild(editorContainer);
+      const { DeckEditorUI } = await import('./DeckEditorUI.js');
+      this.editor = new DeckEditorUI(editorContainer, this.deckManager, () => this.renderizarLista());
+    }
+    this.editor.container.style.display = 'block';
+    this.editor.abrir(index);
+  }
+
+  // ===== ABRIR DECK =====
   async abrirDeck(index) {
     const deck = this.deckManager.getDeck(index);
     if (!deck) return;
     this.deckAtual = index;
+    const tipos = this.contarTipos(deck.cartas);
 
-    this.container.innerHTML = '';
     const wrapper = document.createElement('div');
     wrapper.className = 'deck-visualizacao-wrapper';
 
@@ -113,31 +236,108 @@ export class DeckListUI {
     mainArea.className = 'deck-main-area';
     mainArea.innerHTML = `
       <div class="deck-header">
-        <h2>${deck.nome} (<span id="deck-contador">${deck.cartas.length}</span>/80)</h2>
-        <button class="btn-voltar-decks">⬅️ Voltar</button>
-        <button id="btn-forcar" style="background:orange;color:#000;padding:4px 12px;border:none;border-radius:4px;cursor:pointer;">🔄 Forçar</button>
+        <div>
+          <h2>${deck.nome} (<span id="deck-contador">${deck.cartas.length}</span>/80)</h2>
+          <div class="deck-tipos">
+            <span class="tipo-monstro">🟢 Monstros: ${tipos.monstros}</span>
+            <span class="tipo-magia">🔵 Magias: ${tipos.magias}</span>
+            <span class="tipo-armadilha">🟣 Armadilhas: ${tipos.armadilhas}</span>
+          </div>
+        </div>
+        <div>
+          <button class="btn-exportar-deck" data-index="${index}">📤 Exportar</button>
+          <button class="btn-voltar-decks">⬅️ Voltar</button>
+        </div>
       </div>
-      <div id="deck-cartas-container"></div>
+      <div id="deck-cartas-container" class="deck-cartas-grid"></div>
     `;
 
     wrapper.appendChild(sidebar);
     wrapper.appendChild(mainArea);
+    this.container.innerHTML = '';
     this.container.appendChild(wrapper);
 
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        this.renderizarCartasDeck();
-      }, 50);
-    });
+    // Evento exportar
+    const btnExportar = mainArea.querySelector('.btn-exportar-deck');
+    btnExportar?.addEventListener('click', () => this.exportarDeck(index));
 
-    wrapper.querySelector('#btn-forcar')?.addEventListener('click', () => {
-      this.renderizarCartasDeck();
-    });
-
+    this.renderizarCartasDeck();
     this.configurarPesquisa(index, sidebar);
     mainArea.querySelector('.btn-voltar-decks').addEventListener('click', () => this.renderizarLista());
   }
 
+  // ===== EXPORTAR DECK =====
+  exportarDeck(index) {
+    const deck = this.deckManager.getDeck(index);
+    if (!deck) {
+      alert('❌ Deck não encontrado.');
+      return;
+    }
+    if (deck.cartas.length === 0) {
+      alert('⚠️ O deck está vazio. Não há nada para exportar.');
+      return;
+    }
+
+    // Agrupa
+    const agrupadas = {};
+    deck.cartas.forEach(c => {
+      if (!agrupadas[c.id]) agrupadas[c.id] = { carta: c, count: 0 };
+      agrupadas[c.id].count++;
+    });
+
+    let texto = `=== ${deck.nome} ===\n`;
+    texto += `Total: ${deck.cartas.length} cartas\n\n`;
+    Object.values(agrupadas).forEach(({ carta, count }) => {
+      const nome = carta.name;
+      const tipo = carta.type || '?';
+      const atk = carta.atk || '?';
+      const def = carta.def || '?';
+      texto += `${count}x ${nome} (${tipo}) | ATK: ${atk} | DEF: ${def}\n`;
+    });
+
+    console.log('📤 Texto exportado:\n', texto);
+
+    // Tenta copiar com clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(texto)
+        .then(() => alert('✅ Deck exportado para a área de transferência!'))
+        .catch(() => this.fallbackCopiar(texto));
+    } else {
+      this.fallbackCopiar(texto);
+    }
+  }
+
+  fallbackCopiar(texto) {
+    const textarea = document.createElement('textarea');
+    textarea.value = texto;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand('copy');
+      alert('✅ Deck exportado para a área de transferência!');
+    } catch (e) {
+      // Último recurso: mostrar em um prompt
+      prompt('📋 Copie o texto manualmente:', texto);
+    }
+    document.body.removeChild(textarea);
+  }
+
+  // ===== CONTAR TIPOS =====
+  contarTipos(cartas) {
+    let monstros = 0, magias = 0, armadilhas = 0;
+    cartas.forEach(c => {
+      const tipo = c.type || '';
+      if (tipo.includes('Spell')) magias++;
+      else if (tipo.includes('Trap')) armadilhas++;
+      else monstros++;
+    });
+    return { monstros, magias, armadilhas };
+  }
+
+  // ===== CONFIGURAR PESQUISA =====
   configurarPesquisa(index, sidebar) {
     const inputBusca = sidebar.querySelector('#deck-pesquisa-input');
     const selectAtributo = sidebar.querySelector('#deck-pesquisa-atributo');
@@ -146,80 +346,65 @@ export class DeckListUI {
     const deck = this.deckManager.getDeck(index);
 
     const realizarPesquisa = async () => {
-        const nome = inputBusca.value.trim();
-        const atributo = selectAtributo.value;
-        const params = {};
-        if (nome) params.name = nome;
-        if (atributo) params.attribute = atributo;
+      const nome = inputBusca.value.trim();
+      const atributo = selectAtributo.value;
+      const params = {};
+      if (nome) params.name = nome;
+      if (atributo) params.attribute = atributo;
 
-        if (!nome && !atributo) {
-          resultadosDiv.innerHTML = '<p>Digite um termo ou selecione um atributo.</p>';
+      if (!nome && !atributo) {
+        resultadosDiv.innerHTML = '<p>Digite um termo ou selecione um atributo.</p>';
+        return;
+      }
+
+      resultadosDiv.innerHTML = '<p>⏳ Buscando...</p>';
+      try {
+        const resultado = await buscarCartas(params, 0, 20);
+        const cartas = resultado.data || [];
+        if (cartas.length === 0) {
+          resultadosDiv.innerHTML = '<p>Nenhuma carta encontrada.</p>';
           return;
         }
 
-        resultadosDiv.innerHTML = '<p>⏳ Buscando...</p>';
-        try {
-          const resultado = await buscarCartas(params, 0, 20);
-          const cartas = resultado.data || [];
-          if (cartas.length === 0) {
-              resultadosDiv.innerHTML = '<p>Nenhuma carta encontrada.</p>';
-              return;
-          }
+        let html = '<ul class="resultados-pesquisa-lista">';
+        cartas.forEach(carta => {
+          const qtd = deck.cartas.filter(c => c.id === carta.id).length;
+          const podeAdicionar = qtd < 3 && deck.cartas.length < 80;
+          const cartaJSON = JSON.stringify(carta).replace(/"/g, '&quot;');
+          html += `
+            <li class="resultado-item">
+              <img src="${carta.card_images[0].image_url}" alt="${carta.name}" width="40" />
+              <span>${carta.name}</span>
+              <span class="qtd">${qtd}/3</span>
+              ${podeAdicionar ? `<button class="btn-add-carta-deck" data-carta="${cartaJSON}">+</button>` : '<span class="limite">✔</span>'}
+            </li>
+          `;
+        });
+        html += '</ul>';
+        resultadosDiv.innerHTML = html;
 
-          let html = '<ul class="resultados-pesquisa-lista">';
-          cartas.forEach(carta => {
-              const qtd = deck.cartas.filter(c => c.id === carta.id).length;
-              const podeAdicionar = qtd < 3 && deck.cartas.length < 80;
-              
-              // 🔥 CORREÇÃO DEFINITIVA: Substitui aspas por entidade HTML &quot;
-              const cartaJSON = JSON.stringify(carta).replace(/"/g, '&quot;');
-              
-              html += `
-                <li class="resultado-item">
-                    <img src="${carta.card_images[0].image_url}" alt="${carta.name}" width="40" />
-                    <span>${carta.name}</span>
-                    <span class="qtd">${qtd}/3</span>
-                    ${podeAdicionar ? `<button class="btn-add-carta-deck" data-carta="${cartaJSON}">+</button>` : '<span class="limite">✔</span>'}
-                </li>
-              `;
+        resultadosDiv.querySelectorAll('.btn-add-carta-deck').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const carta = JSON.parse(btn.dataset.carta.replace(/&quot;/g, '"'));
+            if (this.deckManager.adicionarCarta(index, carta)) {
+              this.renderizarCartasDeck();
+              document.getElementById('deck-contador').textContent = deck.cartas.length;
+              const tipos = this.contarTipos(deck.cartas);
+              const header = document.querySelector('.deck-tipos');
+              if (header) {
+                header.innerHTML = `
+                  <span class="tipo-monstro">🟢 Monstros: ${tipos.monstros}</span>
+                  <span class="tipo-magia">🔵 Magias: ${tipos.magias}</span>
+                  <span class="tipo-armadilha">🟣 Armadilhas: ${tipos.armadilhas}</span>
+                `;
+              }
+              realizarPesquisa();
+            }
           });
-          html += '</ul>';
-          resultadosDiv.innerHTML = html;
-
-          resultadosDiv.querySelectorAll('.btn-add-carta-deck').forEach(btn => {
-              btn.addEventListener('click', () => {
-                // 🔥 DESCODIFICAÇÃO SEGURA: Troca &quot; de volta para "
-                const carta = JSON.parse(btn.dataset.carta.replace(/&quot;/g, '"'));
-                
-                if (this.deckManager.adicionarCarta(index, carta)) {
-                    this.renderizarCartasDeck();
-                    document.getElementById('deck-contador').textContent = deck.cartas.length;
-                    
-                    // Atualiza localmente (sem recarregar a API inteira)
-                    const item = btn.closest('.resultado-item');
-                    if (item) {
-                        const qtdSpan = item.querySelector('.qtd');
-                        let qtdAtual = parseInt(qtdSpan.textContent);
-                        qtdAtual++;
-                        qtdSpan.textContent = `${qtdAtual}/3`;
-                        
-                        if(qtdAtual >= 3 || deck.cartas.length >= 80) {
-                            btn.remove(); // Remove o botão se atingir o limite
-                            const limiteSpan = document.createElement('span');
-                            limiteSpan.className = 'limite';
-                            limiteSpan.textContent = '✔';
-                            item.appendChild(limiteSpan);
-                        }
-                    }
-                } else {
-                    // 🔥 TRATAMENTO DE ERRO: Se o deckManager falhar, força um recarregamento
-                    setTimeout(() => realizarPesquisa(), 300);
-                }
-              });
-          });
-        } catch (error) {
-          resultadosDiv.innerHTML = `<p>Erro: ${error.message}</p>`;
-        }
+        });
+      } catch (error) {
+        resultadosDiv.innerHTML = `<p>Erro: ${error.message}</p>`;
+      }
     };
 
     btnBuscar.addEventListener('click', realizarPesquisa);
@@ -227,6 +412,7 @@ export class DeckListUI {
     selectAtributo.addEventListener('change', realizarPesquisa);
   }
 
+  // ===== RENDERIZAR CARTAS DO DECK =====
   renderizarCartasDeck() {
     const deck = this.deckManager.getDeck(this.deckAtual);
     if (!deck) return;
@@ -235,7 +421,7 @@ export class DeckListUI {
     if (!container) return;
 
     if (deck.cartas.length === 0) {
-      container.innerHTML = '<p class="sem-resultados">Este deck está vazio. Adicione cartas pela busca lateral.</p>';
+      container.innerHTML = '<p class="sem-resultados">Este deck está vazio.</p>';
       return;
     }
 
@@ -244,7 +430,6 @@ export class DeckListUI {
       grid-template-columns: repeat(5, 1fr) !important;
       gap: 24px !important;
       width: 100% !important;
-      min-width: 350px !important;
       flex: 1 !important;
       min-height: 400px !important;
       padding: 15px !important;
@@ -260,15 +445,13 @@ export class DeckListUI {
       agrupadas[c.id].count++;
     });
 
-    container.innerHTML = ''; 
+    container.innerHTML = '';
+    const fragment = document.createDocumentFragment();
 
     Object.values(agrupadas).forEach(({ carta, count }) => {
       const cardElement = criarCard(carta, this.onCardClick);
-      
       cardElement.style.cssText = `
         width: 100% !important;
-        min-width: 160px !important;
-        min-height: 240px !important;
         aspect-ratio: 2 / 3 !important;
         margin: 0 !important;
         position: relative !important;
@@ -277,6 +460,8 @@ export class DeckListUI {
         border: 2px solid rgba(255, 215, 0, 0.15) !important;
         border-radius: 10px !important;
         padding: 8px !important;
+        min-height: 240px !important;
+        min-width: 160px !important;
         background: rgba(0, 0, 0, 0.4) !important;
         box-sizing: border-box !important;
         transition: transform 0.2s !important;
@@ -296,17 +481,17 @@ export class DeckListUI {
       removeBtn.className = 'btn-remover-carta-deck';
       removeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (confirm(`Remover uma cópia de "${carta.name}" do deck?`)) {
+        if (confirm(`Remover uma cópia de "${carta.name}"?`)) {
           if (this.deckManager.removerCarta(this.deckAtual, carta.id)) {
             this.abrirDeck(this.deckAtual);
           }
         }
       });
       containerCard.appendChild(removeBtn);
-
-      container.appendChild(cardElement);
+      fragment.appendChild(cardElement);
     });
 
+    container.appendChild(fragment);
     const contador = document.getElementById('deck-contador');
     if (contador) contador.textContent = deck.cartas.length;
   }

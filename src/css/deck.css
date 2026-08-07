@@ -129,18 +129,143 @@
   transform: scale(1.15) !important;
 }
 
-/* ===== RESPONSIVIDADE DO GRID (GERENCIADA PELO JAVASCRIPT E CSS) ===== */
-@media (max-width: 1024px) {
-  .deck-cartas-lista-grid { grid-template-columns: repeat(4, 1fr) !important; }
+/* ===== CAPA DO DECK ===== */
+.deck-item-capa {
+  width: 80px;
+  height: 120px;
+  margin: 0 auto 8px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.3);
+  border: 2px solid rgba(255,215,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.3s;
 }
-@media (max-width: 768px) {
-  .deck-visualizacao-wrapper { flex-direction: column; padding: 12px; }
-  .deck-sidebar { flex: 0 0 auto; max-height: 300px; }
-  .deck-cartas-lista-grid { grid-template-columns: repeat(3, 1fr) !important; }
-  .deck-header h2 { font-size: 18px; }
+.deck-item:hover .deck-item-capa {
+  border-color: rgba(255,215,0,0.5);
 }
-@media (max-width: 480px) {
-  .deck-cartas-lista-grid { grid-template-columns: repeat(2, 1fr) !important; }
+.deck-item-capa img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.deck-sem-capa {
+  font-size: 32px;
+  color: #888;
+}
+
+.deck-item h3 {
+  color: #ffd700;
+  margin: 8px 0 4px 0;
+  font-size: 16px;
+  text-align: center;
+}
+.deck-item p {
+  color: #aaa;
+  margin: 4px 0 8px 0;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ===== TIPOS NO DECK ===== */
+.deck-tipos {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: #ccc;
+  margin-top: 4px;
+}
+.deck-tipos span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.tipo-monstro { color: #4caf50; }
+.tipo-magia { color: #42a5f5; }
+.tipo-armadilha { color: #ab47bc; }
+
+/* ===== GRID DE DECKS (LISTA PRINCIPAL) ===== */
+.deck-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+  gap: 20px !important;
+  margin-top: 16px !important;
+  width: 100% !important;
+}
+
+.deck-item {
+  background: rgba(255,255,255,0.05);
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,215,0,0.2);
+  text-align: center;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.2s;
+  box-sizing: border-box;
+}
+.deck-item:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255,215,0,0.4);
+}
+
+.deck-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 8px;
+  width: 100%;
+}
+.deck-acoes button {
+  margin: 2px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: white;
+  font-size: 12px;
+  transition: opacity 0.2s;
+  flex: 0 1 auto;
+  min-width: 50px;
+}
+.deck-acoes .btn-abrir-deck { background: #28a745; }
+.deck-acoes .btn-editar-deck { background: #ffc107; color: #000; }
+.deck-acoes .btn-duplicar-deck { background: #6c5ce7; }
+.deck-acoes .btn-aleatorio-deck { background: linear-gradient(135deg, #f39c12, #e67e22); }
+.deck-acoes .btn-excluir-deck { background: #dc3545; }
+.deck-acoes button:hover { opacity: 0.8; }
+
+/* ===== BOTÃO EXPORTAR ===== */
+.btn-exportar-deck {
+  background: linear-gradient(135deg, #3498db, #2980b9) !important;
+  color: white !important;
+  padding: 8px 16px !important;
+  border: none !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  font-weight: bold !important;
+  transition: all 0.3s !important;
+  margin-right: 8px;
+}
+.btn-exportar-deck:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4) !important;
+}
+
+/* ===== GRID DE CARTAS DO DECK (VISUALIZAÇÃO) ===== */
+#deck-cartas-container {
+  display: grid !important;
+  grid-template-columns: repeat(5, 1fr) !important;
+  gap: 16px !important;
+  padding: 16px !important;
+  background: rgba(0,0,0,0.15) !important;
+  border-radius: 12px !important;
+  min-height: 400px !important;
+  align-content: start !important;
 }
 
 #deck-cartas-container .cartao {
@@ -148,4 +273,111 @@
   transform-style: preserve-3d;
   will-change: transform;
   transition: transform 0.4s ease-out;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 1024px) {
+  #deck-cartas-container { grid-template-columns: repeat(4, 1fr) !important; }
+}
+@media (max-width: 768px) {
+  .deck-visualizacao-wrapper { flex-direction: column; padding: 12px; }
+  .deck-sidebar { flex: 0 0 auto; max-height: 300px; }
+  #deck-cartas-container { grid-template-columns: repeat(3, 1fr) !important; }
+  .deck-header h2 { font-size: 18px; }
+}
+@media (max-width: 600px) {
+  .deck-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important; }
+}
+@media (max-width: 480px) {
+  #deck-cartas-container { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+/* ===== GRID DE DECKS (LISTA PRINCIPAL) ===== */
+.deck-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+  gap: 24px !important;
+  margin-top: 16px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.deck-item {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  background: rgba(255,255,255,0.05) !important;
+  padding: 20px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255,215,0,0.2) !important;
+  text-align: center !important;
+  transition: all 0.3s !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+}
+.deck-item:hover {
+  transform: translateY(-4px) !important;
+  border-color: rgba(255,215,0,0.5) !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important;
+}
+.deck-item h3 {
+  color: #ffd700 !important;
+  margin: 12px 0 4px 0 !important;
+  font-size: 18px !important;
+}
+.deck-item p {
+  color: #aaa !important;
+  margin: 0 0 12px 0 !important;
+  font-size: 13px !important;
+}
+
+/* Capa do Deck */
+.deck-item-capa {
+  width: 100px !important;
+  height: 140px !important;
+  margin: 0 auto !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  background: rgba(0,0,0,0.4) !important;
+  border: 2px solid rgba(255,215,0,0.2) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.deck-item-capa img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+.deck-sem-capa {
+  font-size: 32px !important;
+  color: #888 !important;
+}
+
+/* Botões de ação no deck */
+.deck-acoes {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  width: 100% !important;
+  margin-top: 4px !important;
+}
+.deck-acoes button {
+  padding: 6px 14px !important;
+  border: none !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  color: white !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  transition: all 0.2s !important;
+}
+.deck-acoes .btn-abrir-deck { background: #28a745 !important; }
+.deck-acoes .btn-editar-deck { background: #ffc107 !important; color: #333 !important; }
+.deck-acoes .btn-duplicar-deck { background: #6c5ce7 !important; }
+.deck-acoes .btn-excluir-deck { background: #dc3545 !important; }
+.deck-acoes button:hover { 
+  transform: scale(1.05) !important; 
+  opacity: 0.9 !important; 
 }

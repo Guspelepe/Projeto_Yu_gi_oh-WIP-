@@ -1,6 +1,5 @@
 // components/Modal.js
 
-// components/Modal.js (trecho do import)
 import { isFavorito, adicionarFavorito, removerFavorito, getDecks } from '../utils/storage.js';
 import { DeckManager } from './DeckManager.js';
 
@@ -19,7 +18,7 @@ export class Modal {
 
     this.modal = document.createElement('div');
     this.modal.className = 'modal-container';
-    
+
     this.modal.innerHTML = `
       <button class="modal-fechar">✕</button>
       <div class="modal-conteudo">
@@ -84,7 +83,7 @@ export class Modal {
     // Configura botão favoritar
     this.configurarBotaoFavoritar();
 
-    // Configura botão de deck (com integração real)
+    // Configura botão de deck
     this.configurarBotaoDeck();
 
     // Mostra o modal
@@ -163,7 +162,6 @@ export class Modal {
       const manager = new DeckManager();
       if (manager.adicionarCarta(index, carta)) {
         alert(`✅ "${carta.name}" adicionada ao deck "${decks[index].nome}"!`);
-        // Dispara evento para atualizar a view de decks se estiver aberta
         document.dispatchEvent(new CustomEvent('deckAtualizado'));
       }
     });

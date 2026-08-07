@@ -7,14 +7,12 @@ export function criarCard(carta, onCardClick) {
   li.className = 'cartao';
   li.dataset.id = carta.id;
 
-  // Fundo por atributo
   const fundoClasse = obterFundoPorAtributo(carta.attribute);
   li.classList.add(fundoClasse);
 
   const favorito = isFavorito(carta.id);
   const estrelas = carta.level ? '★'.repeat(carta.level) : '';
 
-  // Estrutura da carta
   li.innerHTML = `
     <div class="carta-container">
       ${favorito ? '<div class="carta-favorito-icone">❤️</div>' : ''}
@@ -29,29 +27,40 @@ export function criarCard(carta, onCardClick) {
         <span>ATK ${carta.atk || '?'}</span>
         <span>DEF ${carta.def || '?'}</span>
       </div>
+      <!-- Efeito holográfico -->
+      <div class="holographic-effect"></div>
     </div>
   `;
 
-  // ===== EFEITO 3D =====
+  // ===== EFEITO 3D + HOLOGRÁFICO =====
   let animationFrame = null;
 
   const handleMouseMove = (e) => {
     if (animationFrame) return;
     animationFrame = requestAnimationFrame(() => {
       const rect = li.getBoundingClientRect();
-      const x = e.clientX - rect.left; // posição X dentro da carta
-      const y = e.clientY - rect.top;  // posição Y dentro da carta
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
 
       const centerX = rect.width / 2;
       const centerY = rect.height / 2;
 
-      // Calcula a rotação (máximo de +/- 15 graus)
-      const rotateY = ((x - centerX) / centerX) * 15;   // eixo Y (movimento horizontal)
-      const rotateX = -((y - centerY) / centerY) * 15;  // eixo X (movimento vertical)
+      const rotateY = ((x - centerX) / centerX) * 15;
+      const rotateX = -((y - centerY) / centerY) * 15;
 
-      // Aplica a transformação
+      // Aplica o efeito 3D
       li.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
       li.style.transition = 'transform 0.05s ease-out';
+
+      // ===== EFEITO HOLOGRÁFICO =====
+      const holographic = li.querySelector('.holographic-effect');
+      if (holographic) {
+        const percentX = (x / rect.width) * 100;
+        const percentY = (y / rect.height) * 100;
+        holographic.style.setProperty('--holo-x', `${percentX}%`);
+        holographic.style.setProperty('--holo-y', `${percentY}%`);
+        holographic.style.opacity = '0.7';
+      }
 
       animationFrame = null;
     });
@@ -62,21 +71,25 @@ export function criarCard(carta, onCardClick) {
       cancelAnimationFrame(animationFrame);
       animationFrame = null;
     }
-    // Volta ao normal com transição suave
+    // Volta ao normal
     li.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)';
     li.style.transition = 'transform 0.4s ease-out';
+
+    // Desvanece o holográfico
+    const holographic = li.querySelector('.holographic-effect');
+    if (holographic) {
+      holographic.style.opacity = '0';
+    }
   };
 
-  // Adiciona os listeners
   li.addEventListener('mouseenter', () => {
-    // Pré-ativa o efeito
     li.style.willChange = 'transform';
   });
 
   li.addEventListener('mousemove', handleMouseMove);
   li.addEventListener('mouseleave', handleMouseLeave);
 
-  // Clique para abrir o modal (mantido)
+  // Clique para abrir o modal (sem GSAP)
   li.addEventListener('click', (e) => {
     e.stopPropagation();
     if (onCardClick) onCardClick(carta);

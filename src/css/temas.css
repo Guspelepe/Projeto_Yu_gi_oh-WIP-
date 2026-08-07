@@ -1,0 +1,139 @@
+/* src/css/temas.css */
+
+/* ===== VARIÁVEIS ===== */
+:root {
+  /* Cores do tema claro (padrão) */
+  --bg-body: #f0ebe3;
+  --bg-card: #ffffff;
+  --bg-header: #1a1a2e;
+  --text-primary: #1a1a2e;
+  --text-secondary: #333;
+  --text-light: #f1ecff;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --border: rgba(0, 0, 0, 0.1);
+  --bg-filtros: rgba(255, 255, 255, 0.8);
+  --bg-lista: rgba(255, 255, 255, 0.5);
+  --bg-modal: #ffffff;
+  --bg-sidebar: #f5f0eb;
+  --bg-deck-item: rgba(0, 0, 0, 0.05);
+  --bg-sidebar-deck: #f5f0eb;
+  --bg-deck-container: rgba(0, 0, 0, 0.05);
+}
+
+/* Tema escuro */
+[data-theme="dark"] {
+  --bg-body: #121212;
+  --bg-card: #1e1e2e;
+  --bg-header: #0d0d1a;
+  --text-primary: #e0e0e0;
+  --text-secondary: #aaa;
+  --text-light: #f1ecff;
+  --shadow: rgba(0, 0, 0, 0.5);
+  --border: rgba(255, 255, 255, 0.1);
+  --bg-filtros: rgba(0, 0, 0, 0.6);
+  --bg-lista: rgba(0, 0, 0, 0.3);
+  --bg-modal: #1a1a2e;
+  --bg-sidebar: #1a1a2e;
+  --bg-deck-item: rgba(255, 255, 255, 0.05);
+  --bg-sidebar-deck: #1a1a2e;
+  --bg-deck-container: rgba(0, 0, 0, 0.2);
+}
+
+/* ===== APLICAÇÃO DAS VARIÁVEIS ===== */
+body {
+  background-color: var(--bg-body);
+  color: var(--text-primary);
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+.cabecalho .titulo {
+  color: var(--text-light);
+}
+
+#filtros {
+  background: var(--bg-filtros);
+  backdrop-filter: blur(4px);
+}
+
+.lista-personagens {
+  background: var(--bg-lista);
+}
+
+.modal-container {
+  background: var(--bg-modal);
+}
+
+.deck-sidebar {
+  background: var(--bg-sidebar-deck);
+}
+
+.deck-item {
+  background: var(--bg-deck-item);
+}
+
+#deck-cartas-container {
+  background: var(--bg-deck-container);
+}
+
+.cartao {
+  border-color: var(--border);
+  box-shadow: 0 8px 25px var(--shadow);
+}
+
+/* Botão de tema */
+.btn-tema {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  margin-left: 16px;
+}
+
+.btn-tema:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+/* ===== CORREÇÃO PARA O TEMA ESCURO EM ELEMENTOS ESPECÍFICOS ===== */
+[data-theme="dark"] .deck-header h2,
+[data-theme="dark"] .deck-lista h2,
+[data-theme="dark"] .estatisticas-container h2 {
+  color: #ffd700;
+}
+
+[data-theme="dark"] .deck-sidebar input,
+[data-theme="dark"] .deck-sidebar select {
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+}
+
+[data-theme="dark"] .resultado-item {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .deck-item h3 {
+  color: #ffd700;
+}
+
+[data-theme="dark"] .modal-info {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .modal-nome {
+  color: #ffd700;
+}
