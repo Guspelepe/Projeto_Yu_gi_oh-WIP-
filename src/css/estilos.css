@@ -1,257 +1,651 @@
+/* ===== RESET E BASE ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
-	font-family: "Yugioh", serif;
-	background-image: url(../imagens/imagens/fundo-site.jpg);
-	background-repeat: no-repeat;
-	background-size: cover;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    min-height: 100vh;
-    gap: 30px;
+  font-family: 'Yugioh', serif;
+  background-image: url(../imagens/imagens/fundo-site.jpg);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  min-height: 100vh;
+  gap: 20px;
+  padding: 20px;
 }
 
 .cabecalho {
-	display: flex;
-	justify-content: center;
+  display: flex;
+  justify-content: center;
 }
 
 .cabecalho .titulo {
-	color: #f1ecff;
+  color: #f1ecff;
+  font-size: 2rem;
+  text-shadow: 0 0 20px rgba(131, 81, 254, 0.5);
 }
 
-/* ===== ESTRUTURA DO FLIP CARD ===== */
+/* ===== FILTROS ===== */
+#filtros {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+#filtros input,
+#filtros select,
+#filtros button {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 14px;
+  backdrop-filter: blur(4px);
+  transition: all 0.3s;
+}
+
+#filtros input::placeholder {
+  color: #aaa;
+}
+
+#filtros input:focus,
+#filtros select:focus {
+  outline: none;
+  border-color: #8351fe;
+  box-shadow: 0 0 20px rgba(131, 81, 254, 0.3);
+}
+
+#filtros button {
+  background: linear-gradient(135deg, #8351fe, #6a3bb5);
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#filtros button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(131, 81, 254, 0.4);
+}
+
+/* ===== LISTA DE CARTAS (GRID) ===== */
+.lista-personagens {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 25px;
+  width: 100%;
+  max-width: 1200px;
+  min-height: 500px;
+  padding: 20px;
+  list-style: none;
+  margin: 0 auto;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+}
+
+/* ===== NOVO ESTILO PARA CARTAS (SEM FLIP) ===== */
+
 .cartao {
-	perspective: 1000px;
-	opacity: 0;
-	display: flex;
-	flex-direction: column;
-	padding: 12px;
-    gap: 5px;
-    position: absolute;
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  border: 2px solid rgba(255, 215, 0, 0.15);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
 }
 
-.cartao.selecionado {
-	opacity: 1;
-    z-index: 1;
+.cartao:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+  border-color: rgba(255, 215, 0, 0.4);
 }
 
-.flip-card {
-    width: 100%;
-    height: 100%;
-    position: relative;
+/* Container da carta */
+.carta-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: overlay;
+  padding: 10px;
+  position: relative;
 }
 
-.flip-card-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transition: transform 0.6s ease-in-out;
-    transform-style: preserve-3d;
+/* Wrapper da imagem para centralizar */
+.carta-imagem-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
 
-/* Quando a carta estiver virada */
-.cartao.virar .flip-card-inner {
-    transform: rotateY(180deg);
+.carta-imagem {
+  width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
+  transition: transform 0.3s ease;
 }
 
-/* Frente e verso da carta */
-.flip-card-front,
+.cartao:hover .carta-imagem {
+  transform: scale(1.05);
+}
+
+/* Nível (estrelas) – canto superior direito */
+.carta-nivel {
+  position: absolute;
+  top: 5px;
+  right: 8px;
+  font-size: 14px;
+  color: #ffd700;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+  letter-spacing: 2px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2px 8px;
+  border-radius: 12px;
+  backdrop-filter: blur(2px);
+}
+
+/* ATK/DEF na parte inferior */
+.carta-ataque-defesa {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  border-radius: 6px;
+  margin-top: 6px;
+  color: #ffd700;
+  font-size: 12px;
+  font-weight: bold;
+  border: 1px solid rgba(255, 215, 0, 0.1);
+}
+
+.carta-ataque-defesa span {
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+}
+
+/* ===== FUNDOS POR ATRIBUTO ===== */
+.fundo-dark .carta-container {
+  background: linear-gradient(145deg, rgba(26, 10, 46, 0.95), rgba(45, 27, 78, 0.95));
+}
+.fundo-light .carta-container {
+  background: linear-gradient(145deg, rgba(245, 230, 211, 0.95), rgba(232, 213, 184, 0.95));
+}
+.fundo-fire .carta-container {
+  background: linear-gradient(145deg, rgba(74, 26, 10, 0.95), rgba(139, 58, 31, 0.95));
+}
+.fundo-water .carta-container {
+  background: linear-gradient(145deg, rgba(10, 26, 58, 0.95), rgba(26, 74, 122, 0.95));
+}
+.fundo-earth .carta-container {
+  background: linear-gradient(145deg, rgba(42, 26, 10, 0.95), rgba(74, 58, 26, 0.95));
+}
+.fundo-wind .carta-container {
+  background: linear-gradient(145deg, rgba(10, 42, 42, 0.95), rgba(26, 90, 90, 0.95));
+}
+.fundo-divine .carta-container {
+  background: linear-gradient(145deg, rgba(58, 42, 10, 0.95), rgba(106, 90, 42, 0.95));
+}
+.fundo-padrao .carta-container {
+  background: linear-gradient(145deg, rgba(26, 26, 46, 0.95), rgba(45, 45, 68, 0.95));
+}
+
+/* VERSO */
 .flip-card-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    padding: 12px;
-    gap: 5px;
-}
-
-/* Frente da carta (o conteúdo normal) */
-.flip-card-front {
-    background: inherit;
-    z-index: 2;
-    transform: rotateY(0deg);
-}
-
-/* Verso da carta (parte de trás) */
-.flip-card-back {
-    background: #2a1a0e;
-    transform: rotateY(180deg);
-    z-index: 1;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-    border: 3px solid #c08057;
-    border-radius: 10px;
+  background: #1a0e0a;
+  transform: rotateY(180deg);
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+  border-color: rgba(255, 215, 0, 0.4);
 }
 
 .verso-imagem {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 8px;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #c08057;
 }
 
-/* ===== FUNDOS DAS CARTAS ===== */
-.fundo-1 .flip-card-front {
-    background: url(../imagens/imagens/fundo-1.jpg) no-repeat center;
-    background-size: cover;
-}
-.fundo-2 .flip-card-front {
-    background: url(../imagens/imagens/fundo-2.jpg) no-repeat center;
-    background-size: cover;
-}
-.fundo-3 .flip-card-front {
-    background: url(../imagens/imagens/fundo-3.jpg) no-repeat center;
-    background-size: cover;
-}
-.fundo-4 .flip-card-front {
-    background: url(../imagens/imagens/fundo-4.jpg) no-repeat center;
-    background-size: cover;
-}
-.fundo-5 .flip-card-front {
-    background: url(../imagens/imagens/fundo-5.jpg) no-repeat center;
-    background-size: cover;
-}
-.fundo-6 .flip-card-front {
-    background: url(../imagens/imagens/fundo-6.jpg) no-repeat center;
-    background-size: cover;
-}
-.fundo-7 .flip-card-front {
-    background: url(../imagens/imagens/fundo-7.jpg) no-repeat center;
-    background-size: cover;
-}
-
-/* ===== ESTILOS DOS ELEMENTOS DA CARTA ===== */
-.lista-personagens {
-	width: 300px;
-	height: 500px;
-	border-radius: 10px;
-    position: relative;
-	padding: 12px;
-}
-
-.slider {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	gap: 130px;
-}
-
+/* ===== CONTEÚDO DA CARTA (FRENTE) ===== */
 .flip-card-front .nome {
-	font-size: 13px;
-	padding: 5px;
-	text-transform: uppercase;
-	background: radial-gradient(circle, #f3e2c8, #e4cfa5, #c4a57a);
-	border: 2px solid #a67c52;
-	border-radius: 4px;
-	text-align: center;
-	margin: 0;
-}
-
-.flip-card-front .estrela {
-	width: 20px;
-	height: 20px;
-	background-image: url(../imagens/imagens/nivel-carta.png);
-	background-size: contain;
-	background-repeat: no-repeat;
-	display: inline-block;
+  font-size: 11px;
+  padding: 4px 6px;
+  text-align: center;
+  text-transform: uppercase;
+  background: rgba(0, 0, 0, 0.6);
+  color: #ffd700;
+  border-radius: 4px;
+  margin: 0;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .flip-card-front .nivel-carta {
-	display: flex;
-	justify-content: flex-end;
-	margin-right: 10px;
-	gap: 5px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 2px;
+  margin-right: 5px;
 }
 
-/* === CORREÇÃO DA IMAGEM === */
+.flip-card-front .estrela {
+  color: #ffd700;
+  font-size: 12px;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
 .flip-card-front .imagem-carta {
-	max-width: 260px;      /* Largura máxima igual ao original */
-	align-self: center;    /* Centraliza horizontalmente */
-	/* Remove o max-height: 200px que estava cortando a imagem */
-	height: auto;          /* Mantém a proporção */
+  width: 100%;
+  max-height: 140px;
+  object-fit: contain;
+  align-self: center;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6));
+  transition: transform 0.3s;
+}
+
+.cartao:hover .imagem-carta {
+  transform: scale(1.03);
 }
 
 .flip-card-front .informacoes {
-	border-radius: 5px;
-	max-width: 300px;
-	color: #000000;
-	background: radial-gradient(circle, #f3e2c8, #e4cfa5, #c4a57a);
-	border: 2px solid #a67c52;
-	text-align: left;
-	line-height: 1.5;
-    padding: 5px;
-    /* Remove o flex: 1 para não forçar altura excessiva */
-    flex: 0 1 auto;
-    overflow: hidden;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 6px;
+  padding: 6px 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid rgba(255, 215, 0, 0.1);
 }
 
-.flip-card-front .informacoes .descricao {
-	border-bottom: 1px solid #000000;
-	padding: 10px;
-	max-height: 95px;
-	overflow-y: auto;
-	font-size: 13px;
+.flip-card-front .descricao {
+  font-size: 10px;
+  color: #ddd;
+  line-height: 1.3;
+  max-height: 45px;
+  overflow-y: auto;
+  margin: 0;
+  flex: 1;
 }
 
-.flip-card-front .informacoes .informacoes-ataque {
-	display: flex;
-	justify-content: flex-end;
-	gap: 5px;
-	padding: 10px;
+.flip-card-front .descricao::-webkit-scrollbar {
+  width: 3px;
+}
+.flip-card-front .descricao::-webkit-scrollbar-thumb {
+  background: #ffd700;
+  border-radius: 10px;
 }
 
-.flip-card-front .informacoes .informacoes-ataque span {
-	font-size: 13px;
+.flip-card-front .informacoes-ataque {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  font-size: 10px;
+  color: #ffd700;
+  border-top: 1px solid rgba(255, 215, 0, 0.2);
+  padding-top: 4px;
 }
 
-/* ===== BOTÕES ===== */
-.btn-seta{
-    background-color: #ffffff;
-    width: 70px;
-    height: 70px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50px;
-    border: 0;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
-    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+.flip-card-front .informacoes-ataque span {
+  font-weight: bold;
 }
 
-.btn-seta.btn-voltar{
-    transform: rotateY(180deg);
+/* ===== PAGINAÇÃO ===== */
+#paginacao {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 20px;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
 }
 
-.btn-seta:hover{
-    background-color: #8351fe;
+#paginacao button {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #8351fe, #6a3bb5);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+#paginacao button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(131, 81, 254, 0.4);
+}
+
+#paginacao button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+#contador-pagina {
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-container {
+  background: linear-gradient(145deg, #1a1a2e, #16213e);
+  border-radius: 20px;
+  max-width: 800px;
+  width: 92%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 30px;
+  position: relative;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+  animation: slideUp 0.4s ease;
+  --modal-cor: #2d2d2d;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-fechar {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transition: all 0.3s;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-fechar:hover {
+  background: rgba(255, 0, 0, 0.3);
+  transform: rotate(90deg);
+}
+
+.modal-conteudo {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+.modal-imagem-container {
+  flex: 0 0 280px;
+  border-radius: 15px;
+  overflow: hidden;
+  border: 3px solid rgba(255, 215, 0, 0.3);
+  background: var(--modal-cor);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.modal-imagem {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.3s;
+}
+
+.modal-imagem:hover {
+  transform: scale(1.05);
+}
+
+.modal-info {
+  flex: 1;
+  color: #e0e0e0;
+}
+
+.modal-nome {
+  font-size: 28px;
+  font-weight: bold;
+  color: #ffd700;
+  margin: 0 0 15px 0;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+}
+
+.modal-detalhes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.modal-detalhes p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.modal-detalhes strong {
+  color: #aaa;
+  font-weight: 600;
+}
+
+.modal-detalhes span {
+  color: #fff;
+  font-weight: 500;
+}
+
+.modal-descricao {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  border-left: 3px solid #ffd700;
+}
+
+.modal-descricao h3 {
+  color: #ffd700;
+  margin: 0 0 8px 0;
+  font-size: 16px;
+}
+
+.modal-texto-descricao {
+  color: #ccc;
+  line-height: 1.6;
+  font-size: 14px;
+  margin: 0;
+}
+
+.modal-acoes {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.modal-acoes button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+  flex: 1;
+  min-width: 120px;
+}
+
+.modal-favoritar {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: white;
+}
+
+.modal-favoritar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(238, 90, 36, 0.4);
+}
+
+.modal-adicionar-deck {
+  background: linear-gradient(135deg, #6c5ce7, #341f97);
+  color: white;
+}
+
+.modal-adicionar-deck:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(108, 92, 231, 0.4);
 }
 
 /* ===== SCROLLBAR ===== */
-body::-webkit-scrollbar-track{
-    background-color: #c08057;
+::-webkit-scrollbar {
+  width: 8px;
 }
 
-::-webkit-scrollbar {
-    width: 10px;
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #c08057;
-    border-radius: 10px;
+  background: #c08057;
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #c08057;
+  background: #a06740;
 }
 
-/* ===== UTILITÁRIOS ===== */
-.esconder {
-	display: none;
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 768px) {
+  .lista-personagens {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    padding: 10px;
+  }
+
+  .flip-card-front .nome {
+    font-size: 10px;
+  }
+
+  .flip-card-front .imagem-carta {
+    max-height: 100px;
+  }
+
+  .flip-card-front .descricao {
+    font-size: 9px;
+    max-height: 35px;
+  }
+
+  .modal-conteudo {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .modal-imagem-container {
+    flex: 0 0 auto;
+    max-width: 200px;
+  }
+
+  .modal-nome {
+    font-size: 22px;
+    text-align: center;
+  }
+
+  .modal-detalhes {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-acoes {
+    flex-direction: column;
+  }
+
+  #filtros {
+    gap: 5px;
+  }
+
+  #filtros input,
+  #filtros select,
+  #filtros button {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .lista-personagens {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+
+  .flip-card-front .nome {
+    font-size: 8px;
+  }
+
+  .flip-card-front .imagem-carta {
+    max-height: 70px;
+  }
+
+  .flip-card-front .descricao {
+    font-size: 8px;
+    max-height: 30px;
+  }
+
+  .flip-card-front .informacoes-ataque {
+    font-size: 8px;
+  }
+
+  .modal-container {
+    padding: 15px;
+  }
 }
