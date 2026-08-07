@@ -86,6 +86,7 @@ export class DeckListUI {
     if (!deck) return;
     this.deckAtual = index;
 
+    this.container.innerHTML = '';
     const wrapper = document.createElement('div');
     wrapper.className = 'deck-visualizacao-wrapper';
 
@@ -114,87 +115,123 @@ export class DeckListUI {
       <div class="deck-header">
         <h2>${deck.nome} (<span id="deck-contador">${deck.cartas.length}</span>/80)</h2>
         <button class="btn-voltar-decks">⬅️ Voltar</button>
+        <button id="btn-forcar" style="background:orange;color:#000;padding:4px 12px;border:none;border-radius:4px;cursor:pointer;">🔄 Forçar</button>
       </div>
-      <div id="deck-cartas-container" class="deck-cartas-grid"></div>
+      <div id="deck-cartas-container"></div>
     `;
 
     wrapper.appendChild(sidebar);
     wrapper.appendChild(mainArea);
-    this.container.innerHTML = '';
     this.container.appendChild(wrapper);
 
-    this.renderizarCartasDeck();
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        this.renderizarCartasDeck();
+      }, 50);
+    });
 
-    // ===== CONFIGURA PESQUISA =====
+    wrapper.querySelector('#btn-forcar')?.addEventListener('click', () => {
+      this.renderizarCartasDeck();
+    });
+
+    this.configurarPesquisa(index, sidebar);
+    mainArea.querySelector('.btn-voltar-decks').addEventListener('click', () => this.renderizarLista());
+  }
+
+  configurarPesquisa(index, sidebar) {
     const inputBusca = sidebar.querySelector('#deck-pesquisa-input');
     const selectAtributo = sidebar.querySelector('#deck-pesquisa-atributo');
     const btnBuscar = sidebar.querySelector('#deck-pesquisa-buscar');
     const resultadosDiv = sidebar.querySelector('#deck-resultados-pesquisa');
+    const deck = this.deckManager.getDeck(index);
 
     const realizarPesquisa = async () => {
-      const nome = inputBusca.value.trim();
-      const atributo = selectAtributo.value;
-      const params = {};
-      if (nome) params.name = nome;
-      if (atributo) params.attribute = atributo;
+        const nome = inputBusca.value.trim();
+        const atributo = selectAtributo.value;
+        const params = {};
+        if (nome) params.name = nome;
+        if (atributo) params.attribute = atributo;
 
-      if (!nome && !atributo) {
-        resultadosDiv.innerHTML = '<p>Digite um termo ou selecione um atributo.</p>';
-        return;
-      }
-
-      resultadosDiv.innerHTML = '<p>⏳ Buscando...</p>';
-      try {
-        const resultado = await buscarCartas(params, 0, 20);
-        const cartas = resultado.data || [];
-        if (cartas.length === 0) {
-          resultadosDiv.innerHTML = '<p>Nenhuma carta encontrada.</p>';
+        if (!nome && !atributo) {
+          resultadosDiv.innerHTML = '<p>Digite um termo ou selecione um atributo.</p>';
           return;
         }
 
-        let html = '<ul class="resultados-pesquisa-lista">';
-        cartas.forEach(carta => {
-          const qtd = deck.cartas.filter(c => c.id === carta.id).length;
-          const podeAdicionar = qtd < 3 && deck.cartas.length < 80;
-          html += `
-            <li class="resultado-item">
-              <img src="${carta.card_images[0].image_url}" alt="${carta.name}" width="40" />
-              <span>${carta.name}</span>
-              <span class="qtd">${qtd}/3</span>
-              ${podeAdicionar ? `<button class="btn-add-carta-deck" data-carta='${JSON.stringify(carta)}'>+</button>` : '<span class="limite">✔</span>'}
-            </li>
-          `;
-        });
-        html += '</ul>';
-        resultadosDiv.innerHTML = html;
+        resultadosDiv.innerHTML = '<p>⏳ Buscando...</p>';
+        try {
+          const resultado = await buscarCartas(params, 0, 20);
+          const cartas = resultado.data || [];
+          if (cartas.length === 0) {
+              resultadosDiv.innerHTML = '<p>Nenhuma carta encontrada.</p>';
+              return;
+          }
 
-        resultadosDiv.querySelectorAll('.btn-add-carta-deck').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const carta = JSON.parse(btn.dataset.carta);
-            if (this.deckManager.adicionarCarta(index, carta)) {
-              this.renderizarCartasDeck();
-              document.getElementById('deck-contador').textContent = deck.cartas.length;
-              realizarPesquisa();
-            }
+          let html = '<ul class="resultados-pesquisa-lista">';
+          cartas.forEach(carta => {
+              const qtd = deck.cartas.filter(c => c.id === carta.id).length;
+              const podeAdicionar = qtd < 3 && deck.cartas.length < 80;
+              
+              // 🔥 CORREÇÃO DEFINITIVA: Substitui aspas por entidade HTML &quot;
+              const cartaJSON = JSON.stringify(carta).replace(/"/g, '&quot;');
+              
+              html += `
+                <li class="resultado-item">
+                    <img src="${carta.card_images[0].image_url}" alt="${carta.name}" width="40" />
+                    <span>${carta.name}</span>
+                    <span class="qtd">${qtd}/3</span>
+                    ${podeAdicionar ? `<button class="btn-add-carta-deck" data-carta="${cartaJSON}">+</button>` : '<span class="limite">✔</span>'}
+                </li>
+              `;
           });
-        });
-      } catch (error) {
-        resultadosDiv.innerHTML = `<p>Erro: ${error.message}</p>`;
-      }
+          html += '</ul>';
+          resultadosDiv.innerHTML = html;
+
+          resultadosDiv.querySelectorAll('.btn-add-carta-deck').forEach(btn => {
+              btn.addEventListener('click', () => {
+                // 🔥 DESCODIFICAÇÃO SEGURA: Troca &quot; de volta para "
+                const carta = JSON.parse(btn.dataset.carta.replace(/&quot;/g, '"'));
+                
+                if (this.deckManager.adicionarCarta(index, carta)) {
+                    this.renderizarCartasDeck();
+                    document.getElementById('deck-contador').textContent = deck.cartas.length;
+                    
+                    // Atualiza localmente (sem recarregar a API inteira)
+                    const item = btn.closest('.resultado-item');
+                    if (item) {
+                        const qtdSpan = item.querySelector('.qtd');
+                        let qtdAtual = parseInt(qtdSpan.textContent);
+                        qtdAtual++;
+                        qtdSpan.textContent = `${qtdAtual}/3`;
+                        
+                        if(qtdAtual >= 3 || deck.cartas.length >= 80) {
+                            btn.remove(); // Remove o botão se atingir o limite
+                            const limiteSpan = document.createElement('span');
+                            limiteSpan.className = 'limite';
+                            limiteSpan.textContent = '✔';
+                            item.appendChild(limiteSpan);
+                        }
+                    }
+                } else {
+                    // 🔥 TRATAMENTO DE ERRO: Se o deckManager falhar, força um recarregamento
+                    setTimeout(() => realizarPesquisa(), 300);
+                }
+              });
+          });
+        } catch (error) {
+          resultadosDiv.innerHTML = `<p>Erro: ${error.message}</p>`;
+        }
     };
 
     btnBuscar.addEventListener('click', realizarPesquisa);
     inputBusca.addEventListener('keypress', (e) => { if (e.key === 'Enter') realizarPesquisa(); });
     selectAtributo.addEventListener('change', realizarPesquisa);
-
-    mainArea.querySelector('.btn-voltar-decks').addEventListener('click', () => this.renderizarLista());
   }
 
   renderizarCartasDeck() {
     const deck = this.deckManager.getDeck(this.deckAtual);
     if (!deck) return;
 
-    const container = document.getElementById('deck-cartas-container');
+    let container = this.container.querySelector('#deck-cartas-container');
     if (!container) return;
 
     if (deck.cartas.length === 0) {
@@ -202,18 +239,51 @@ export class DeckListUI {
       return;
     }
 
-    // Agrupa cartas por ID
+    container.style.cssText = `
+      display: grid !important;
+      grid-template-columns: repeat(5, 1fr) !important;
+      gap: 24px !important;
+      width: 100% !important;
+      min-width: 350px !important;
+      flex: 1 !important;
+      min-height: 400px !important;
+      padding: 15px !important;
+      box-sizing: border-box !important;
+      border-radius: 12px !important;
+      background: rgba(0, 0, 0, 0.15) !important;
+      align-content: start !important;
+    `;
+
     const agrupadas = {};
     deck.cartas.forEach(c => {
       if (!agrupadas[c.id]) agrupadas[c.id] = { carta: c, count: 0 };
       agrupadas[c.id].count++;
     });
 
-    container.innerHTML = '';
-    const fragment = document.createDocumentFragment();
+    container.innerHTML = ''; 
 
     Object.values(agrupadas).forEach(({ carta, count }) => {
       const cardElement = criarCard(carta, this.onCardClick);
+      
+      cardElement.style.cssText = `
+        width: 100% !important;
+        min-width: 160px !important;
+        min-height: 240px !important;
+        aspect-ratio: 2 / 3 !important;
+        margin: 0 !important;
+        position: relative !important;
+        display: flex !important;
+        flex-direction: column !important;
+        border: 2px solid rgba(255, 215, 0, 0.15) !important;
+        border-radius: 10px !important;
+        padding: 8px !important;
+        background: rgba(0, 0, 0, 0.4) !important;
+        box-sizing: border-box !important;
+        transition: transform 0.2s !important;
+        cursor: pointer !important;
+        overflow: hidden !important;
+      `;
+
       const containerCard = cardElement.querySelector('.carta-container');
 
       const badge = document.createElement('span');
@@ -234,10 +304,8 @@ export class DeckListUI {
       });
       containerCard.appendChild(removeBtn);
 
-      fragment.appendChild(cardElement);
+      container.appendChild(cardElement);
     });
-
-    container.appendChild(fragment);
 
     const contador = document.getElementById('deck-contador');
     if (contador) contador.textContent = deck.cartas.length;

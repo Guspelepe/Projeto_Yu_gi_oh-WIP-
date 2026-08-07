@@ -1,0 +1,144 @@
+/* ===== LAYOUT GERAL DO DECK ===== */
+.deck-visualizacao-wrapper {
+  display: flex;
+  gap: 20px;
+  width: 100% !important;
+  min-height: 500px !important;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 16px;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+  box-sizing: border-box;
+}
+
+.deck-sidebar {
+  flex: 0 0 280px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  max-height: 600px;
+  overflow-y: auto;
+}
+.deck-sidebar h3 { color: #ffd700; margin: 0 0 12px 0; font-size: 16px; }
+.deck-sidebar input, .deck-sidebar select {
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+.deck-sidebar button {
+  width: 100%;
+  padding: 8px;
+  background: linear-gradient(135deg, #8351fe, #6a3bb5);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.deck-sidebar button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(131,81,254,0.4);
+}
+#deck-resultados-pesquisa { margin-top: 12px; max-height: 400px; overflow-y: auto; }
+.resultados-pesquisa-lista { list-style: none; padding: 0; margin: 0; }
+.resultado-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+.resultado-item img { width: 36px; height: 50px; object-fit: contain; border-radius: 4px; background: rgba(0,0,0,0.3); }
+.resultado-item span { flex: 1; color: #eee; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.resultado-item .qtd { color: #ffd700; font-size: 12px; min-width: 30px; text-align: center; }
+.resultado-item .btn-add-carta-deck {
+  background: #27ae60; border: none; color: white; width: 28px; height: 28px; border-radius: 50%;
+  cursor: pointer; font-weight: bold; font-size: 16px; transition: all 0.2s;
+}
+.resultado-item .btn-add-carta-deck:hover { transform: scale(1.1); background: #2ecc71; }
+.resultado-item .limite { color: #888; font-size: 18px; }
+
+/* ===== ÁREA PRINCIPAL ===== */
+.deck-main-area {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  min-height: 400px !important;
+}
+.deck-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.deck-header h2 { color: #ffd700; margin: 0; font-size: 22px; }
+.btn-voltar-decks { padding: 8px 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; cursor: pointer; transition: all 0.3s; }
+.btn-voltar-decks:hover { background: rgba(255,255,255,0.2); }
+
+/* ===== BADGE E BOTÃO DE REMOVER ===== */
+.deck-card-count {
+  position: absolute !important;
+  top: 4px !important;
+  left: 4px !important;
+  background: rgba(0, 0, 0, 0.8) !important;
+  color: #ffd700 !important;
+  padding: 2px 8px !important;
+  border-radius: 12px !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  z-index: 10 !important;
+  border: 1px solid rgba(255, 215, 0, 0.3) !important;
+}
+.btn-remover-carta-deck {
+  position: absolute !important;
+  bottom: 4px !important;
+  right: 4px !important;
+  background: rgba(255, 0, 0, 0.8) !important;
+  color: white !important;
+  border: 1px solid white !important;
+  border-radius: 50% !important;
+  width: 24px !important;
+  height: 24px !important;
+  cursor: pointer !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 10 !important;
+  transition: all 0.2s !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
+}
+.btn-remover-carta-deck:hover {
+  background: red !important;
+  transform: scale(1.15) !important;
+}
+
+/* ===== RESPONSIVIDADE DO GRID (GERENCIADA PELO JAVASCRIPT E CSS) ===== */
+@media (max-width: 1024px) {
+  .deck-cartas-lista-grid { grid-template-columns: repeat(4, 1fr) !important; }
+}
+@media (max-width: 768px) {
+  .deck-visualizacao-wrapper { flex-direction: column; padding: 12px; }
+  .deck-sidebar { flex: 0 0 auto; max-height: 300px; }
+  .deck-cartas-lista-grid { grid-template-columns: repeat(3, 1fr) !important; }
+  .deck-header h2 { font-size: 18px; }
+}
+@media (max-width: 480px) {
+  .deck-cartas-lista-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
