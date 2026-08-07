@@ -1,55 +1,86 @@
 // components/SearchBar.js
 
+import { buscarCartas } from '../api/yugioh.js';
+
 export class SearchBar {
-  constructor(inputSelector, buttonSelector, filtroSelectors, onSearchCallback) {
-    this.input = document.querySelector(inputSelector);
-    this.button = document.querySelector(buttonSelector);
-    this.filtros = {};
+  constructor(options = {}) {
+    this.input = options.input;
+    this.button = options.button;
+    this.filtros = options.filtros || {};
+    this.onSearch = options.onSearch;
+    this.debounceTime = options.debounceTime || 300;
+    this.timeout = null;
+    this.ultimaBusca = '';
 
-    if (filtroSelectors) {
-      Object.keys(filtroSelectors).forEach(key => {
-        this.filtros[key] = document.querySelector(filtroSelectors[key]);
-      });
-    }
+    this.inicializarEventos();
+  }
 
-    this.onSearch = onSearchCallback;
-
-    // Evento de clique no botão
-    this.button.addEventListener('click', () => this.buscar());
-
-    // Enter no campo de busca
-    this.input.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') this.buscar();
+  inicializarEventos() {
+    // Evento de input com debounce (pesquisa em tempo real)
+    this.input?.addEventListener('input', () => {
+      clearTimeout(this.timeout);
+      this.timeout = setTimeout(() => {
+        this.realizarBusca();
+      }, this.debounceTime);
     });
 
-    // Evento de mudança nos filtros (opcional)
-    Object.values(this.filtros).forEach(filtro => {
-      if (filtro && filtro.tagName === 'SELECT') {
-        filtro.addEventListener('change', () => this.buscar());
+    // Enter no campo de busca
+    this.input?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        clearTimeout(this.timeout);
+        this.realizarBusca();
       }
+    });
+
+    // Botão de busca
+    this.button?.addEventListener('click', () => {
+      clearTimeout(this.timeout);
+      this.realizarBusca();
+    });
+
+    // Filtros: mudança já dispara busca (com debounce)
+    Object.values(this.filtros).forEach(filtro => {
+      filtro?.addEventListener('change', () => {
+        clearTimeout(this.timeout);
+        this.timeout = setTimeout(() => {
+          this.realizarBusca();
+        }, 100);
+      });
     });
   }
 
-  async buscar() {
-    const nome = this.input.value.trim();
+  async realizarBusca() {
+    const nome = this.input?.value.trim() || '';
     const params = {};
 
-    if (nome) params.name = nome;
+    // Se não houver termo e nenhum filtro, não faz busca (opcional)
+    // Mas podemos buscar tudo se quiser
 
-    // Coleta valores dos filtros
+    if (nome) {
+      params.name = nome;
+    }
+
+    // Coleta filtros
     Object.keys(this.filtros).forEach(key => {
-      const valor = this.filtros[key].value;
-      if (valor) params[key] = valor;
+      const valor = this.filtros[key]?.value;
+      if (valor && valor !== '') {
+        params[key] = valor;
+      }
     });
 
-    try {
-      // Em vez de buscar aqui, delegamos para o callback
-      if (this.onSearch) {
-        // Passamos os parâmetros e deixamos o main.js lidar com a paginação
-        this.onSearch(params);
-      }
-    } catch (error) {
-      console.error('Erro na busca:', error);
+    // Evita busca duplicada
+    const chaveBusca = JSON.stringify(params);
+    if (chaveBusca === this.ultimaBusca) return;
+    this.ultimaBusca = chaveBusca;
+
+    // Dispara evento de busca
+    if (this.onSearch) {
+      this.onSearch(params);
     }
+  }
+
+  // Método para buscar programaticamente
+  buscar() {
+    this.realizarBusca();
   }
 }

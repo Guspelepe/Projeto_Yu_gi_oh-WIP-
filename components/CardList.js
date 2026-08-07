@@ -7,31 +7,44 @@ export class CardList {
     this.container = container;
     this.onCardClick = onCardClick;
     this.cartas = [];
-    this.totalPaginas = 0;
     this.paginaAtual = 0;
+    this.totalPaginas = 0;
+    this.itensPorPagina = 20;
   }
 
-  // Define as cartas e renderiza (sem slice, pois já vem paginado)
   setCartas(cartas, totalPaginas = 1) {
     this.cartas = cartas;
     this.totalPaginas = totalPaginas;
+    this.paginaAtual = 0;
     this.renderizar();
   }
 
-  // Renderiza as cartas atuais (sem slice)
   renderizar() {
     this.container.innerHTML = '';
-    if (!this.cartas || this.cartas.length === 0) {
-      this.container.innerHTML = '<p class="sem-resultados">Nenhuma carta encontrada.</p>';
-      return;
-    }
-
     this.cartas.forEach(carta => {
       const cardElement = criarCard(carta, this.onCardClick);
       this.container.appendChild(cardElement);
     });
-
     this.atualizarPaginacao();
+  }
+
+  proximaPagina() {
+    if (this.paginaAtual < this.totalPaginas - 1) {
+      this.paginaAtual++;
+      // Notifica que precisa carregar a próxima página (via callback no main)
+      document.dispatchEvent(new CustomEvent('mudarPagina', { 
+        detail: { pagina: this.paginaAtual } 
+      }));
+    }
+  }
+
+  paginaAnterior() {
+    if (this.paginaAtual > 0) {
+      this.paginaAtual--;
+      document.dispatchEvent(new CustomEvent('mudarPagina', { 
+        detail: { pagina: this.paginaAtual } 
+      }));
+    }
   }
 
   atualizarPaginacao() {
@@ -39,5 +52,13 @@ export class CardList {
       detail: { pagina: this.paginaAtual + 1, total: this.totalPaginas }
     });
     document.dispatchEvent(evento);
+  }
+
+  // Mantém compatibilidade com reset (caso use)
+  resetar() {
+    this.cartas = [];
+    this.paginaAtual = 0;
+    this.totalPaginas = 0;
+    this.container.innerHTML = '';
   }
 }

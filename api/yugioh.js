@@ -3,8 +3,8 @@
 const BASE_URL = 'https://db.ygoprodeck.com/api/v7';
 
 /**
- * Busca cartas com paginação.
- * @param {Object} params - Filtros (name, attribute, type, level, etc.)
+ * Busca cartas com paginação e filtros.
+ * @param {Object} params - Filtros (name, attribute, type, level, race, etc.)
  * @param {number} offset - Quantas cartas pular
  * @param {number} num - Quantas cartas por página (padrão 20)
  * @returns {Promise<{data: Array, total: number}>}
@@ -12,7 +12,7 @@ const BASE_URL = 'https://db.ygoprodeck.com/api/v7';
 export async function buscarCartas(params = {}, offset = 0, num = 20) {
   const queryParams = new URLSearchParams();
 
-  // Se tiver 'name', converte para 'fname' (busca difusa)
+  // 🔥 Converte 'name' para 'fname' (busca difusa)
   if (params.name) {
     queryParams.append('fname', params.name);
     delete params.name;
@@ -21,7 +21,7 @@ export async function buscarCartas(params = {}, offset = 0, num = 20) {
   // Adiciona os demais filtros
   Object.keys(params).forEach(key => {
     const value = params[key];
-    if (value && value !== '') {
+    if (value && value !== '' && value !== 'all') {
       queryParams.append(key, value);
     }
   });
@@ -45,7 +45,6 @@ export async function buscarCartas(params = {}, offset = 0, num = 20) {
       return { data: [], total: 0 };
     }
 
-    // A API retorna o total no campo 'meta'
     const total = data.meta?.total_rows || data.data?.length || 0;
     return { data: data.data || [], total };
   } catch (error) {
@@ -54,9 +53,6 @@ export async function buscarCartas(params = {}, offset = 0, num = 20) {
   }
 }
 
-/**
- * Busca por nome (compatibilidade)
- */
 export async function buscarPorNome(nome, offset = 0, num = 20) {
   return buscarCartas({ name: nome }, offset, num);
 }

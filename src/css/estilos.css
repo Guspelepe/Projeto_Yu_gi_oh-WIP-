@@ -30,19 +30,32 @@ body {
   text-shadow: 0 0 20px rgba(131, 81, 254, 0.5);
 }
 
-/* ===== FILTROS ===== */
+/* ===== FILTROS MELHORADOS ===== */
 #filtros {
   display: flex;
+  flex-direction: column;
   gap: 10px;
   justify-content: center;
-  flex-wrap: wrap;
+  align-items: center;
   margin-bottom: 20px;
+  width: 100%;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.filtros-linha {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
 }
 
 #filtros input,
 #filtros select,
 #filtros button {
-  padding: 10px 16px;
+  padding: 10px 14px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(0, 0, 0, 0.6);
@@ -50,6 +63,16 @@ body {
   font-size: 14px;
   backdrop-filter: blur(4px);
   transition: all 0.3s;
+}
+
+#filtros input {
+  flex: 1;
+  min-width: 180px;
+}
+
+#filtros select {
+  min-width: 140px;
+  cursor: pointer;
 }
 
 #filtros input::placeholder {
@@ -68,6 +91,7 @@ body {
   border: none;
   cursor: pointer;
   font-weight: bold;
+  transition: all 0.3s;
 }
 
 #filtros button:hover {
@@ -75,6 +99,41 @@ body {
   box-shadow: 0 5px 20px rgba(131, 81, 254, 0.4);
 }
 
+/* Botões específicos */
+#btn-favoritos {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24) !important;
+}
+#btn-favoritos:hover {
+  box-shadow: 0 5px 20px rgba(238, 90, 36, 0.5) !important;
+}
+
+#btn-todos {
+  background: linear-gradient(135deg, #6c5ce7, #341f97) !important;
+}
+#btn-todos:hover {
+  box-shadow: 0 5px 20px rgba(108, 92, 231, 0.5) !important;
+}
+
+#btn-decks {
+  background: linear-gradient(135deg, #00b894, #00a381) !important;
+}
+#btn-decks:hover {
+  box-shadow: 0 5px 20px rgba(0, 184, 148, 0.5) !important;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .filtros-linha {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  #filtros input,
+  #filtros select,
+  #filtros button {
+    width: 100%;
+    min-width: unset;
+  }
+}
 /* ===== LISTA DE CARTAS (GRID PRINCIPAL) ===== */
 .lista-personagens {
   display: grid;
@@ -547,4 +606,125 @@ body {
 .btn-criar-deck:hover {
   background: #6a3bb5;
   transform: scale(1.02);
+}
+
+/* ===== EFEITO 3D ===== */
+.cartao {
+  perspective: 800px;
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.4s ease-out;
+}
+
+/* ===== SCROLL INFINITO ===== */
+.loading-sentinel {
+  color: #fff;
+  font-size: 16px;
+  text-align: center;
+  padding: 20px;
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+/* ===== SENTINEL (scroll infinito) ===== */
+.sentinel {
+  height: 20px;
+  width: 100%;
+  text-align: center;
+  color: #888;
+  padding: 20px;
+  font-size: 14px;
+  background: transparent;
+  transition: color 0.3s;
+}
+
+/* ===== FILTROS MELHORADOS ===== */
+#filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 12px 20px;
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  margin-bottom: 20px;
+}
+
+#filtros input,
+#filtros select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 14px;
+  min-width: 120px;
+  transition: all 0.3s;
+}
+
+#filtros input:focus,
+#filtros select:focus {
+  outline: none;
+  border-color: #8351fe;
+  box-shadow: 0 0 15px rgba(131, 81, 254, 0.3);
+}
+
+#filtros input::placeholder {
+  color: #aaa;
+}
+
+#filtros button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition: all 0.3s;
+  background: linear-gradient(135deg, #8351fe, #6a3bb5);
+  color: white;
+}
+
+#filtros button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(131, 81, 254, 0.4);
+}
+
+#btn-limpar-filtros {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24) !important;
+}
+
+#btn-limpar-filtros:hover {
+  box-shadow: 0 4px 15px rgba(238, 90, 36, 0.4) !important;
+}
+
+#btn-favoritos {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24) !important;
+}
+
+#btn-todos {
+  background: linear-gradient(135deg, #6c5ce7, #341f97) !important;
+}
+
+#btn-decks {
+  background: linear-gradient(135deg, #27ae60, #1e8449) !important;
+}
+
+/* Responsividade dos filtros */
+@media (max-width: 768px) {
+  #filtros {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  #filtros input,
+  #filtros select,
+  #filtros button {
+    width: 100%;
+    min-width: unset;
+  }
 }

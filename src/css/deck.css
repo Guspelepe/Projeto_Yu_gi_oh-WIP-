@@ -142,3 +142,10 @@
 @media (max-width: 480px) {
   .deck-cartas-lista-grid { grid-template-columns: repeat(2, 1fr) !important; }
 }
+
+#deck-cartas-container .cartao {
+  perspective: 800px;
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.4s ease-out;
+}

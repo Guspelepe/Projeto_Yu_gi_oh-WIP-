@@ -21,8 +21,9 @@
     <!-- Barra de pesquisa -->
     <div id="filtros">
       <input type="text" id="input-nome" placeholder="Buscar por nome..." />
+      
       <select id="filtro-atributo">
-        <option value="">Todos atributos</option>
+        <option value="all">Todos atributos</option>
         <option value="DARK">Trevas</option>
         <option value="LIGHT">Luz</option>
         <option value="FIRE">Fogo</option>
@@ -31,6 +32,38 @@
         <option value="WIND">Vento</option>
         <option value="DIVINE">Divino</option>
       </select>
+
+      <select id="filtro-tipo">
+        <option value="all">Todos tipos</option>
+        <option value="Normal Monster">Monstro Normal</option>
+        <option value="Effect Monster">Monstro de Efeito</option>
+        <option value="Fusion Monster">Monstro de Fusão</option>
+        <option value="Synchro Monster">Monstro Sincro</option>
+        <option value="XYZ Monster">Monstro XYZ</option>
+        <option value="Link Monster">Monstro Link</option>
+        <option value="Pendulum Monster">Monstro Pêndulo</option>
+        <option value="Ritual Monster">Monstro Ritual</option>
+        <option value="Spell Card">Carta Mágica</option>
+        <option value="Trap Card">Carta Armadilha</option>
+      </select>
+
+      <select id="filtro-nivel">
+        <option value="all">Todos níveis</option>
+        <option value="1">⭐ 1</option>
+        <option value="2">⭐⭐ 2</option>
+        <option value="3">⭐⭐⭐ 3</option>
+        <option value="4">⭐⭐⭐⭐ 4</option>
+        <option value="5">⭐⭐⭐⭐⭐ 5</option>
+        <option value="6">⭐⭐⭐⭐⭐⭐ 6</option>
+        <option value="7">⭐⭐⭐⭐⭐⭐⭐ 7</option>
+        <option value="8">⭐⭐⭐⭐⭐⭐⭐⭐ 8</option>
+        <option value="9">⭐⭐⭐⭐⭐⭐⭐⭐⭐ 9</option>
+        <option value="10">⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ 10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+      </select>
+
+      <button id="btn-limpar-filtros">🧹 Limpar</button>
       <button id="btn-buscar">Buscar</button>
       <button id="btn-favoritos">❤️ Favoritos</button>
       <button id="btn-todos">📚 Todos</button>
@@ -40,13 +73,11 @@
     <!-- Container das cartas -->
     <ul class="lista-personagens" id="lista-cartas"></ul>
 
-    <!-- Controles de paginação -->
     <div id="paginacao">
-      <button id="btn-anterior">Anterior</button>
+      <button id="btn-anterior" disabled>Anterior</button>
       <span id="contador-pagina">Página 1 de 1</span>
-      <button id="btn-proximo">Próximo</button>
+      <button id="btn-proximo" disabled>Próximo</button>
     </div>
-  </main>
 
   <!-- Script principal -->
   <script type="module" src="main.js"></script>
