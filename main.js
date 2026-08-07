@@ -6,14 +6,16 @@ import { buscarCartas } from './api/yugioh.js';
 import { CardList } from './components/CardList.js';
 import { Modal } from './components/Modal.js';
 import { Favorites } from './components/Favorites.js';
+import { DeckListUI } from './components/DeckListUI.js';
+import { isFavorito } from './utils/storage.js';
 
-// ===== ELEMENTOS =====
+// ===== ELEMENTOS DO DOM =====
 const container = document.getElementById('lista-cartas');
 const btnAnterior = document.getElementById('btn-anterior');
 const btnProximo = document.getElementById('btn-proximo');
 const contadorPagina = document.getElementById('contador-pagina');
 
-if (!container) console.error('❌ Container não encontrado!');
+if (!container) console.error('❌ Container #lista-cartas não encontrado!');
 
 // ===== CONFIGURAÇÕES =====
 const ITENS_POR_PAGINA = 20;
@@ -22,18 +24,28 @@ let totalPaginas = 0;
 let termoBuscaAtual = '';
 let atributoFiltroAtual = '';
 
+// ===== CACHE GLOBAL DE CARTAS =====
+let cacheCartas = []; // Armazena todas as cartas já carregadas (evita perda de favoritos)
+
+function adicionarAoCache(cartas) {
+  cartas.forEach(carta => {
+    if (!cacheCartas.find(c => c.id === carta.id)) {
+      cacheCartas.push(carta);
+    }
+  });
+}
+
 // ===== MODAL =====
 const modal = new Modal();
 function abrirModal(carta) {
   modal.abrir(carta);
 }
 
-// ===== LISTA DE CARTAS (local) =====
-const cardList = new CardList(container, abrirModal, ITENS_POR_PAGINA);
+// ===== LISTA DE CARTAS (sem paginação local) =====
+const cardList = new CardList(container, abrirModal);
 
 // ===== FUNÇÃO PARA CARREGAR DA API =====
 async function carregarCartas(params = {}, offset = 0) {
-  // Mostra loading
   container.innerHTML = '<div class="loading">⏳ Carregando...</div>';
 
   try {
@@ -49,15 +61,18 @@ async function carregarCartas(params = {}, offset = 0) {
       return;
     }
 
-    // Atualiza a lista local
-    cardList.cartas = cartas;
-    cardList.totalPaginas = Math.ceil(total / ITENS_POR_PAGINA);
-    cardList.paginaAtual = Math.floor(offset / ITENS_POR_PAGINA);
-    cardList.renderizar();
+    // Adiciona as cartas ao cache global
+    adicionarAoCache(cartas);
 
-    // Atualiza contador
-    totalPaginas = cardList.totalPaginas;
-    contadorPagina.textContent = `Página ${cardList.paginaAtual + 1} de ${totalPaginas}`;
+    // Calcula total de páginas
+    totalPaginas = Math.ceil(total / ITENS_POR_PAGINA);
+    const paginaAtual = Math.floor(offset / ITENS_POR_PAGINA) + 1;
+
+    // Atualiza o CardList com as cartas da página e o total de páginas
+    cardList.setCartas(cartas, totalPaginas);
+    cardList.paginaAtual = paginaAtual - 1;
+
+    contadorPagina.textContent = `Página ${paginaAtual} de ${totalPaginas}`;
 
   } catch (error) {
     console.error('❌ Erro:', error);
@@ -81,14 +96,14 @@ function realizarBusca() {
   carregarCartas(params, 0);
 }
 
-// ===== EVENTOS =====
+// ===== EVENTOS DA BARRA DE PESQUISA =====
 document.getElementById('btn-buscar').addEventListener('click', realizarBusca);
 document.getElementById('input-nome').addEventListener('keypress', (e) => {
   if (e.key === 'Enter') realizarBusca();
 });
 document.getElementById('filtro-atributo').addEventListener('change', realizarBusca);
 
-// Paginação (chama a API com offset)
+// ===== PAGINAÇÃO (CHAMA A API COM OFFSET) =====
 btnProximo.addEventListener('click', () => {
   if (paginaAtual >= totalPaginas - 1) return;
   paginaAtual++;
@@ -110,34 +125,63 @@ btnAnterior.addEventListener('click', () => {
 });
 
 // ===== FAVORITOS =====
-const favoritesManager = new Favorites(container, abrirModal);
-
 document.getElementById('btn-favoritos').addEventListener('click', () => {
-  // Para favoritos, usamos a lista local (todas as cartas já carregadas)
-  // Mas precisamos das cartas atuais. Vamos pegar do cardList.
-  const cartasAtuais = cardList.cartas;
-  if (!cartasAtuais || cartasAtuais.length === 0) {
-    container.innerHTML = '<p class="sem-resultados">Carregue algumas cartas primeiro.</p>';
+  // Filtra todos os favoritos do cache global
+  const favoritos = cacheCartas.filter(carta => isFavorito(carta.id));
+  if (favoritos.length === 0) {
+    container.innerHTML = '<p class="sem-resultados">Nenhuma carta favoritada.</p>';
     return;
   }
-  favoritesManager.renderizar(cartasAtuais, cardList);
+  // Exibe todos os favoritos (sem paginação, apenas uma página)
+  cardList.setCartas(favoritos, 1);
+  contadorPagina.textContent = 'Favoritos';
 });
 
 document.getElementById('btn-todos').addEventListener('click', () => {
-  // Recarrega a busca atual
+  // Volta para a busca atual
   realizarBusca();
 });
 
+// ===== DECKS =====
+let deckListUI = null;
+
+document.getElementById('btn-decks').addEventListener('click', () => {
+  if (!deckListUI) {
+    deckListUI = new DeckListUI(container, abrirModal);
+  }
+  deckListUI.renderizarLista();
+});
+
+// ===== EVENTO PARA ATUALIZAR A VIEW DE DECKS (se aberta) =====
+document.addEventListener('deckAtualizado', () => {
+  // Se a lista de decks estiver visível, re-renderiza
+  if (deckListUI && container.querySelector('.deck-lista')) {
+    deckListUI.renderizarLista();
+  }
+});
+
+// ===== EVENTO PARA ATUALIZAR A LISTA QUANDO FAVORITO MUDA =====
+document.addEventListener('favoritoAtualizado', () => {
+  // Se a lista atual for a de favoritos, re-renderiza
+  if (container.querySelector('.sem-resultados')?.textContent === 'Nenhuma carta favoritada.') {
+    // Se não houver favoritos, a mensagem já está lá
+  }
+  // Se estiver na view de favoritos, podemos re-renderizar chamando o botão de favoritos novamente?
+  // Melhor: verificar se o contador mostra "Favoritos"
+  if (contadorPagina.textContent === 'Favoritos') {
+    document.getElementById('btn-favoritos').click();
+  }
+});
+
 // ===== CARREGAMENTO INICIAL =====
-realizarBusca(); // já chama com os valores padrão (nome vazio, atributo vazio)
-// Mas podemos definir um padrão: buscar "Blue-Eyes" automaticamente
-// Para fazer isso, podemos definir o valor do input e chamar realizarBusca
 document.getElementById('input-nome').value = 'Blue-Eyes';
 realizarBusca();
 
 // ===== ESCUTA EVENTO DE PÁGINA ATUALIZADA (do CardList) =====
 document.addEventListener('paginaAtualizada', (e) => {
   const { pagina, total } = e.detail;
-  // Atualiza o contador (já fazemos na função carregarCartas, mas por segurança)
-  contadorPagina.textContent = `Página ${pagina} de ${total}`;
+  // Se não estiver na view de favoritos ou decks, atualiza o contador
+  if (contadorPagina.textContent !== 'Favoritos') {
+    contadorPagina.textContent = `Página ${pagina} de ${total}`;
+  }
 });

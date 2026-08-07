@@ -1,7 +1,7 @@
 // utils/storage.js
 
 const CHAVE_FAVORITOS = 'yugioh_favoritos';
-const CHAVE_DECK = 'yugioh_deck';
+const CHAVE_DECKS = 'yugioh_decks';
 
 // ===== FAVORITOS =====
 export function getFavoritos() {
@@ -31,12 +31,12 @@ export function isFavorito(cartaId) {
   return getFavoritos().includes(cartaId);
 }
 
-// ===== DECK (futuro) =====
-export function getDeck() {
-  const data = localStorage.getItem(CHAVE_DECK);
+// ===== DECKS =====
+export function getDecks() {
+  const data = localStorage.getItem(CHAVE_DECKS);
   return data ? JSON.parse(data) : [];
 }
 
-export function setDeck(deck) {
-  localStorage.setItem(CHAVE_DECK, JSON.stringify(deck));
+export function setDecks(decks) {
+  localStorage.setItem(CHAVE_DECKS, JSON.stringify(decks));
 }

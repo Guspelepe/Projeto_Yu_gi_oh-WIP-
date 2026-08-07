@@ -10,17 +10,15 @@ export function criarCard(carta, onCardClick) {
   const fundoClasse = obterFundoPorAtributo(carta.attribute);
   li.classList.add(fundoClasse);
 
+  // Verifica se é favorito a cada renderização
   const favorito = isFavorito(carta.id);
   const estrelas = carta.level ? '★'.repeat(carta.level) : '';
-
-  // Usa imagem pequena se disponível
-  const imagemUrl = carta.card_images[0].image_url_small || carta.card_images[0].image_url;
 
   li.innerHTML = `
     <div class="carta-container">
       ${favorito ? '<div class="carta-favorito-icone">❤️</div>' : ''}
       <div class="carta-imagem-wrapper">
-        <img src="${imagemUrl}" 
+        <img src="${carta.card_images[0].image_url}" 
              alt="${carta.name}" 
              class="carta-imagem"
              loading="lazy" />

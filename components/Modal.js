@@ -1,6 +1,8 @@
 // components/Modal.js
 
-import { isFavorito, adicionarFavorito, removerFavorito } from '../utils/storage.js';
+// components/Modal.js (trecho do import)
+import { isFavorito, adicionarFavorito, removerFavorito, getDecks } from '../utils/storage.js';
+import { DeckManager } from './DeckManager.js';
 
 export class Modal {
   constructor() {
@@ -82,13 +84,8 @@ export class Modal {
     // Configura botão favoritar
     this.configurarBotaoFavoritar();
 
-    // TODO: botão de deck (futuro)
-    const btnDeck = this.modal.querySelector('.modal-adicionar-deck');
-    const novoBtnDeck = btnDeck.cloneNode(true);
-    btnDeck.parentNode.replaceChild(novoBtnDeck, btnDeck);
-    novoBtnDeck.addEventListener('click', () => {
-      alert(`Carta "${carta.name}" adicionada ao deck! (em breve)`);
-    });
+    // Configura botão de deck (com integração real)
+    this.configurarBotaoDeck();
 
     // Mostra o modal
     this.overlay.style.display = 'flex';
@@ -102,15 +99,14 @@ export class Modal {
     document.dispatchEvent(new CustomEvent('modalFechado'));
   }
 
+  // ===== FAVORITOS =====
   configurarBotaoFavoritar() {
     const btn = this.modal.querySelector('.modal-favoritar');
     const id = this.cartaAtual.id;
     const isFav = isFavorito(id);
 
-    // Atualiza texto/estilo
     this.atualizarBotaoFavoritar(btn, isFav);
 
-    // Remove listener antigo (clonando)
     const novoBtn = btn.cloneNode(true);
     btn.parentNode.replaceChild(novoBtn, btn);
 
@@ -119,11 +115,11 @@ export class Modal {
       if (agoraFavorito) {
         removerFavorito(id);
         this.atualizarBotaoFavoritar(novoBtn, false);
-        document.dispatchEvent(new CustomEvent('favoritoRemovido', { detail: { cartaId: id } }));
+        document.dispatchEvent(new CustomEvent('favoritoAtualizado', { detail: { cartaId: id } }));
       } else {
         adicionarFavorito(id);
         this.atualizarBotaoFavoritar(novoBtn, true);
-        document.dispatchEvent(new CustomEvent('favoritoAdicionado', { detail: { carta: this.cartaAtual } }));
+        document.dispatchEvent(new CustomEvent('favoritoAtualizado', { detail: { carta: this.cartaAtual } }));
       }
     });
   }
@@ -136,6 +132,41 @@ export class Modal {
       botao.textContent = '🤍 Favoritar';
       botao.style.background = 'linear-gradient(135deg, #ff6b6b, #ee5a24)';
     }
+  }
+
+  // ===== DECK =====
+  configurarBotaoDeck() {
+    const btn = this.modal.querySelector('.modal-adicionar-deck');
+    const novoBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(novoBtn, btn);
+
+    novoBtn.addEventListener('click', async () => {
+      const carta = this.cartaAtual;
+      const decks = getDecks();
+
+      if (decks.length === 0) {
+        alert('Nenhum deck criado. Crie um primeiro clicando em "Meus Decks" no menu.');
+        return;
+      }
+
+      // Mostra opções em um prompt simples
+      let opcoes = decks.map((d, i) => `${i+1}: ${d.nome} (${d.cartas.length}/80)`).join('\n');
+      const escolha = prompt(`Adicionar "${carta.name}" a qual deck?\n\n${opcoes}\n\nDigite o número:`);
+      if (escolha === null) return;
+
+      const index = parseInt(escolha) - 1;
+      if (isNaN(index) || index < 0 || index >= decks.length) {
+        alert('Número inválido.');
+        return;
+      }
+
+      const manager = new DeckManager();
+      if (manager.adicionarCarta(index, carta)) {
+        alert(`✅ "${carta.name}" adicionada ao deck "${decks[index].nome}"!`);
+        // Dispara evento para atualizar a view de decks se estiver aberta
+        document.dispatchEvent(new CustomEvent('deckAtualizado'));
+      }
+    });
   }
 
   obterCorAtributo(atributo) {
