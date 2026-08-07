@@ -19,13 +19,17 @@ body {
 	color: #f1ecff;
 }
 
+/* ===== ESTRUTURA DO FLIP CARD ===== */
 .cartao {
+	perspective: 1000px;
 	opacity: 0;
 	display: flex;
 	flex-direction: column;
 	padding: 12px;
     gap: 5px;
     position: absolute;
+    width: 100%;
+    height: 100%;
 }
 
 .cartao.selecionado {
@@ -33,6 +37,96 @@ body {
     z-index: 1;
 }
 
+.flip-card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s ease-in-out;
+    transform-style: preserve-3d;
+}
+
+/* Quando a carta estiver virada */
+.cartao.virar .flip-card-inner {
+    transform: rotateY(180deg);
+}
+
+/* Frente e verso da carta */
+.flip-card-front,
+.flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    gap: 5px;
+}
+
+/* Frente da carta (o conteúdo normal) */
+.flip-card-front {
+    background: inherit;
+    z-index: 2;
+    transform: rotateY(0deg);
+}
+
+/* Verso da carta (parte de trás) */
+.flip-card-back {
+    background: #2a1a0e;
+    transform: rotateY(180deg);
+    z-index: 1;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    border: 3px solid #c08057;
+    border-radius: 10px;
+}
+
+.verso-imagem {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* ===== FUNDOS DAS CARTAS ===== */
+.fundo-1 .flip-card-front {
+    background: url(../imagens/imagens/fundo-1.jpg) no-repeat center;
+    background-size: cover;
+}
+.fundo-2 .flip-card-front {
+    background: url(../imagens/imagens/fundo-2.jpg) no-repeat center;
+    background-size: cover;
+}
+.fundo-3 .flip-card-front {
+    background: url(../imagens/imagens/fundo-3.jpg) no-repeat center;
+    background-size: cover;
+}
+.fundo-4 .flip-card-front {
+    background: url(../imagens/imagens/fundo-4.jpg) no-repeat center;
+    background-size: cover;
+}
+.fundo-5 .flip-card-front {
+    background: url(../imagens/imagens/fundo-5.jpg) no-repeat center;
+    background-size: cover;
+}
+.fundo-6 .flip-card-front {
+    background: url(../imagens/imagens/fundo-6.jpg) no-repeat center;
+    background-size: cover;
+}
+.fundo-7 .flip-card-front {
+    background: url(../imagens/imagens/fundo-7.jpg) no-repeat center;
+    background-size: cover;
+}
+
+/* ===== ESTILOS DOS ELEMENTOS DA CARTA ===== */
 .lista-personagens {
 	width: 300px;
 	height: 500px;
@@ -48,16 +142,18 @@ body {
 	gap: 130px;
 }
 
-.cartao .nome {
+.flip-card-front .nome {
 	font-size: 13px;
 	padding: 5px;
 	text-transform: uppercase;
 	background: radial-gradient(circle, #f3e2c8, #e4cfa5, #c4a57a);
 	border: 2px solid #a67c52;
 	border-radius: 4px;
+	text-align: center;
+	margin: 0;
 }
 
-.cartao .estrela {
+.flip-card-front .estrela {
 	width: 20px;
 	height: 20px;
 	background-image: url(../imagens/imagens/nivel-carta.png);
@@ -66,19 +162,22 @@ body {
 	display: inline-block;
 }
 
-.cartao .nivel-carta {
+.flip-card-front .nivel-carta {
 	display: flex;
 	justify-content: flex-end;
 	margin-right: 10px;
 	gap: 5px;
 }
 
-.cartao .imagem-carta {
-	max-width: 260px;
-	align-self: center;
+/* === CORREÇÃO DA IMAGEM === */
+.flip-card-front .imagem-carta {
+	max-width: 260px;      /* Largura máxima igual ao original */
+	align-self: center;    /* Centraliza horizontalmente */
+	/* Remove o max-height: 200px que estava cortando a imagem */
+	height: auto;          /* Mantém a proporção */
 }
 
-.cartao .informacoes {
+.flip-card-front .informacoes {
 	border-radius: 5px;
 	max-width: 300px;
 	color: #000000;
@@ -87,49 +186,31 @@ body {
 	text-align: left;
 	line-height: 1.5;
     padding: 5px;
+    /* Remove o flex: 1 para não forçar altura excessiva */
+    flex: 0 1 auto;
+    overflow: hidden;
 }
 
-.cartao .informacoes .informacoes-ataque {
+.flip-card-front .informacoes .descricao {
+	border-bottom: 1px solid #000000;
+	padding: 10px;
+	max-height: 95px;
+	overflow-y: auto;
+	font-size: 13px;
+}
+
+.flip-card-front .informacoes .informacoes-ataque {
 	display: flex;
 	justify-content: flex-end;
 	gap: 5px;
 	padding: 10px;
 }
 
-.cartao .informacoes .informacoes-ataque span {
+.flip-card-front .informacoes .informacoes-ataque span {
 	font-size: 13px;
 }
 
-.cartao .informacoes .descricao {
-	border-bottom: 1px solid #000000;
-	padding: 10px;
-	max-height: 95px;
-	overflow-y: scroll;
-	font-size: 13px;
-}
-
-.fundo-1 {
-	background: url(../imagens/imagens/fundo-1.jpg) no-repeat;
-}
-.fundo-2 {
-	background: url(../imagens/imagens/fundo-2.jpg) no-repeat;
-}
-.fundo-3 {
-	background: url(../imagens/imagens/fundo-3.jpg) no-repeat;
-}
-.fundo-4 {
-	background: url(../imagens/imagens/fundo-4.jpg) no-repeat;
-}
-.fundo-5 {
-	background: url(../imagens/imagens/fundo-5.jpg) no-repeat;
-}
-.fundo-6 {
-	background: url(../imagens/imagens/fundo-6.jpg) no-repeat;
-}
-.fundo-7 {
-	background: url(../imagens/imagens/fundo-7.jpg) no-repeat;
-}
-
+/* ===== BOTÕES ===== */
 .btn-seta{
     background-color: #ffffff;
     width: 70px;
@@ -152,6 +233,7 @@ body {
     background-color: #8351fe;
 }
 
+/* ===== SCROLLBAR ===== */
 body::-webkit-scrollbar-track{
     background-color: #c08057;
 }
@@ -169,29 +251,7 @@ body::-webkit-scrollbar-track{
     background: #c08057;
 }
 
-.carta-virada{
-	display: none;
-}
-
-.carta-vriada.mostrar-fundo-carta {
-	display: block;
-	width: 100%;
-	height: 100%;
-	position: absolute;
-	background: url(..//imagens/imagens/fundo-carta.jpg);
-    background-size: cover;
-	background-position: center;
-	top: 0;
-	left: 0;
-	border-radius: 10px;
-	z-index: 2;
-}
-
-.cartao-virar{
-	transform: rotateZ(90deg);
-	transform: transform 0.3s ease-in-out;
-}
-
+/* ===== UTILITÁRIOS ===== */
 .esconder {
 	display: none;
 }
