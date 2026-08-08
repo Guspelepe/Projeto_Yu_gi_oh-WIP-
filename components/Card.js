@@ -13,6 +13,7 @@ export function criarCard(carta, onCardClick) {
   const favorito = isFavorito(carta.id);
   const estrelas = carta.level ? '★'.repeat(carta.level) : '';
 
+  // ===== CONSTRÓI O HTML DA CARTA =====
   li.innerHTML = `
     <div class="carta-container">
       ${favorito ? '<div class="carta-favorito-icone">❤️</div>' : ''}
@@ -23,10 +24,12 @@ export function criarCard(carta, onCardClick) {
              loading="lazy" />
         ${carta.level ? `<div class="carta-nivel">${estrelas}</div>` : ''}
       </div>
-      <div class="carta-ataque-defesa">
-        <span>ATK ${carta.atk || '?'}</span>
-        <span>DEF ${carta.def || '?'}</span>
-      </div>
+      ${(carta.type && (carta.type.includes('Spell') || carta.type.includes('Trap'))) ? '' : `
+        <div class="carta-ataque-defesa">
+          <span>ATK ${carta.atk || '?'}</span>
+          <span>DEF ${carta.def || '?'}</span>
+        </div>
+      `}
       <!-- Efeito holográfico -->
       <div class="holographic-effect"></div>
     </div>
@@ -48,11 +51,9 @@ export function criarCard(carta, onCardClick) {
       const rotateY = ((x - centerX) / centerX) * 15;
       const rotateX = -((y - centerY) / centerY) * 15;
 
-      // Aplica o efeito 3D
       li.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
       li.style.transition = 'transform 0.05s ease-out';
 
-      // ===== EFEITO HOLOGRÁFICO =====
       const holographic = li.querySelector('.holographic-effect');
       if (holographic) {
         const percentX = (x / rect.width) * 100;
@@ -71,11 +72,9 @@ export function criarCard(carta, onCardClick) {
       cancelAnimationFrame(animationFrame);
       animationFrame = null;
     }
-    // Volta ao normal
     li.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)';
     li.style.transition = 'transform 0.4s ease-out';
 
-    // Desvanece o holográfico
     const holographic = li.querySelector('.holographic-effect');
     if (holographic) {
       holographic.style.opacity = '0';
@@ -89,7 +88,7 @@ export function criarCard(carta, onCardClick) {
   li.addEventListener('mousemove', handleMouseMove);
   li.addEventListener('mouseleave', handleMouseLeave);
 
-  // Clique para abrir o modal (sem GSAP)
+  // Clique para abrir o modal
   li.addEventListener('click', (e) => {
     e.stopPropagation();
     if (onCardClick) onCardClick(carta);

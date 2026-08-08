@@ -75,6 +75,10 @@ async function carregarCartas(params = {}, pagina = 0) {
 
 // ===== FUNÇÃO DE BUSCA COM FILTROS =====
 function realizarBusca() {
+  // 🔥 RESTAURA O CONTAINER AO ESTADO PERFEITO DA LISTA DE CARTAS
+  container.className = 'lista-personagens';
+  container.style.cssText = ''; 
+
   const nome = inputNome.value.trim();
   const atributo = selectAtributo.value;
   const tipo = selectTipo.value;
@@ -184,6 +188,9 @@ document.getElementById('btn-favoritos').addEventListener('click', () => {
     btnProximo.disabled = true;
     return;
   }
+  // 🔥 Para favoritos, também reseta o container
+  container.className = 'lista-personagens';
+  container.style.cssText = '';
   esconderPaginacao();
   cardList.setCartas(favoritos, 1);
   contadorPagina.textContent = `❤️ ${favoritos.length} favoritos`;
@@ -257,3 +264,12 @@ btnTema?.addEventListener('click', () => {
     btnTema.textContent = '☀️';
   }
 });
+
+// ==========================================
+// 🔥 CORREÇÃO DEFINITIVA DO FUNDO (F5 FIX)
+// Força o navegador a carregar a imagem via JS
+// ==========================================
+document.body.style.backgroundImage = 'url(./src/imagens/imagens/fundo-site.jpg)';
+document.body.style.backgroundSize = 'cover';
+document.body.style.backgroundRepeat = 'no-repeat';
+document.body.style.backgroundAttachment = 'fixed';

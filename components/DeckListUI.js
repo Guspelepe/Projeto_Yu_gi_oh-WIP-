@@ -13,18 +13,20 @@ export class DeckListUI {
     this.editor = null;
   }
 
+  // ===== RENDERIZAR LISTA DE DECKS =====
   renderizarLista() {
-    const decks = this.deckManager.listarDecks();
-
-    // 🔥 CORREÇÃO DO LAYOUT: Força o container a ser block para o grid funcionar
+    // 🔥 REMOVE A INTERFERÊNCIA DO FUNDO DO SITE
+    this.container.className = '';
     this.container.style.cssText = `
       display: block !important;
       width: 100% !important;
-      max-width: 100% !important;
-      padding: 0 20px !important;
+      max-width: 1200px !important;
       margin: 0 auto !important;
-      box-sizing: border-box !important;
+      padding: 0 !important;
+      background: transparent !important;
     `;
+
+    const decks = this.deckManager.listarDecks();
 
     if (decks.length === 0) {
       this.container.innerHTML = `
@@ -37,7 +39,7 @@ export class DeckListUI {
       return;
     }
 
-    let html = `<div class="deck-lista">
+    let html = `<div class="deck-lista" style="width: 100%; background: rgba(0, 0, 0, 0.3); border-radius: 20px; backdrop-filter: blur(6px); padding: 24px; box-sizing: border-box; min-height: 500px;">
       <h2>Meus Decks</h2>
       <button class="btn-criar-deck">➕ Criar novo deck</button>
       <div class="deck-grid">`;
@@ -65,7 +67,7 @@ export class DeckListUI {
     html += `</div></div>`;
     this.container.innerHTML = html;
 
-    // 🔥 FORÇA O GRID COM TAMANHO MÍNIMO DE 230px
+    // 🔥 FORÇA O GRID DOS DECKS
     const grid = this.container.querySelector('.deck-grid');
     if (grid) {
       grid.style.cssText = `
@@ -157,7 +159,6 @@ export class DeckListUI {
     const deck = this.deckManager.getDeck(index);
     if (!deck) return;
 
-    // Usa o cache global do main.js (se disponível)
     let cache = window.__cacheCartas || [];
     if (cache.length === 0) {
       alert('Nenhuma carta carregada. Faça uma busca primeiro.');
@@ -172,7 +173,6 @@ export class DeckListUI {
       return;
     }
 
-    // Embaralha e seleciona
     const shuffled = [...cache].sort(() => Math.random() - 0.5);
     const selecionadas = shuffled.slice(0, limite);
 
@@ -189,13 +189,13 @@ export class DeckListUI {
     this.renderizarLista();
   }
 
-  // ===== EDITOR =====
+  // ===== ABRIR EDITOR =====
   async abrirEditor(index) {
     if (!this.editor) {
       const editorContainer = document.createElement('div');
       editorContainer.id = 'deck-editor-container';
       editorContainer.style.display = 'none';
-      this.container.parentNode.appendChild(editorContainer);
+      document.body.appendChild(editorContainer);
       const { DeckEditorUI } = await import('./DeckEditorUI.js');
       this.editor = new DeckEditorUI(editorContainer, this.deckManager, () => this.renderizarLista());
     }
@@ -209,6 +209,18 @@ export class DeckListUI {
     if (!deck) return;
     this.deckAtual = index;
     const tipos = this.contarTipos(deck.cartas);
+
+    // 🔥 AQUI TAMBÉM: O container pai fica transparente. O vidro é o wrapper.
+    this.container.innerHTML = '';
+    this.container.className = '';
+    this.container.style.cssText = `
+      display: block !important;
+      width: 100% !important;
+      max-width: 1200px !important;
+      margin: 0 auto !important;
+      padding: 0 !important;
+      background: transparent !important;
+    `;
 
     const wrapper = document.createElement('div');
     wrapper.className = 'deck-visualizacao-wrapper';
@@ -254,10 +266,8 @@ export class DeckListUI {
 
     wrapper.appendChild(sidebar);
     wrapper.appendChild(mainArea);
-    this.container.innerHTML = '';
     this.container.appendChild(wrapper);
 
-    // Evento exportar
     const btnExportar = mainArea.querySelector('.btn-exportar-deck');
     btnExportar?.addEventListener('click', () => this.exportarDeck(index));
 
@@ -278,7 +288,6 @@ export class DeckListUI {
       return;
     }
 
-    // Agrupa
     const agrupadas = {};
     deck.cartas.forEach(c => {
       if (!agrupadas[c.id]) agrupadas[c.id] = { carta: c, count: 0 };
@@ -297,7 +306,6 @@ export class DeckListUI {
 
     console.log('📤 Texto exportado:\n', texto);
 
-    // Tenta copiar com clipboard API
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(texto)
         .then(() => alert('✅ Deck exportado para a área de transferência!'))
@@ -319,7 +327,6 @@ export class DeckListUI {
       document.execCommand('copy');
       alert('✅ Deck exportado para a área de transferência!');
     } catch (e) {
-      // Último recurso: mostrar em um prompt
       prompt('📋 Copie o texto manualmente:', texto);
     }
     document.body.removeChild(textarea);

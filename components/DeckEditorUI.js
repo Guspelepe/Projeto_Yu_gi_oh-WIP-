@@ -1,12 +1,13 @@
 // components/DeckEditorUI.js
 
 import { buscarCartas } from '../api/yugioh.js';
+import { setDecks } from '../utils/storage.js';
 
 export class DeckEditorUI {
   constructor(container, deckManager, onSave) {
-    this.container = container;
+    this.container = container; // deve ser um container fixo no body
     this.deckManager = deckManager;
-    this.onSave = onSave; // callback após salvar
+    this.onSave = onSave;
     this.deckIndex = null;
     this.deck = null;
     this.capaSelecionada = null;
@@ -19,6 +20,7 @@ export class DeckEditorUI {
 
     this.capaSelecionada = this.deck.capa || null;
     this.renderizar();
+    this.container.style.display = 'block';
   }
 
   renderizar() {
@@ -68,11 +70,16 @@ export class DeckEditorUI {
 
     // ===== EVENTOS =====
 
-    // Fechar
-    this.container.querySelector('.deck-editor-fechar').addEventListener('click', () => this.fechar());
-    this.container.querySelector('.deck-editor-cancelar').addEventListener('click', () => this.fechar());
+    // Fechar (função que limpa o container e esconde)
+    const fechar = () => {
+      this.container.style.display = 'none';
+      this.container.innerHTML = '';
+    };
+
+    this.container.querySelector('.deck-editor-fechar').addEventListener('click', fechar);
+    this.container.querySelector('.deck-editor-cancelar').addEventListener('click', fechar);
     this.container.querySelector('.deck-editor-overlay').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) this.fechar();
+      if (e.target === e.currentTarget) fechar();
     });
 
     // Buscar capa
@@ -140,8 +147,8 @@ export class DeckEditorUI {
       input.value = '';
     });
 
-    // Salvar
-    this.container.querySelector('.deck-editor-salvar').addEventListener('click', () => {
+    // ===== SALVAR (CORRIGIDO) =====
+    this.container.querySelector('.deck-editor-salvar').addEventListener('click', async () => {
       const nomeInput = this.container.querySelector('#deck-editor-nome');
       const novoNome = nomeInput.value.trim();
       if (!novoNome) {
@@ -149,23 +156,20 @@ export class DeckEditorUI {
         return;
       }
 
-      // Renomeia
+      // 1. Renomeia o deck
       this.deckManager.renomearDeck(this.deckIndex, novoNome);
 
-      // Atualiza capa
+      // 2. Atualiza a capa no objeto do deck
       const deckObj = this.deckManager.getDeck(this.deckIndex);
       deckObj.capa = this.capaSelecionada || null;
-      // Salva no localStorage (via setDecks)
       this.deckManager.decks[this.deckIndex] = deckObj;
-      this.deckManager._salvar(); // precisamos criar um método privado ou usar setDecks
 
+      // 3. Salva no localStorage
+      setDecks(this.deckManager.decks);
+
+      // 4. Fecha o modal e chama o callback para atualizar a lista
+      fechar();
       if (this.onSave) this.onSave();
-      this.fechar();
     });
-  }
-
-  fechar() {
-    this.container.innerHTML = '';
-    this.container.style.display = 'none';
   }
 }
