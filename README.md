@@ -43,18 +43,15 @@ O **DuelDex** (anteriormente Yu-Gi-Oh! Pokedex) é uma aplicação web interativ
 *   **API:** [YGOPRODeck API v7](https://ygoprodeck.com/api-guide/) para os dados atualizados das cartas.
 *   **Armazenamento:** `localStorage` do navegador para Decks, Favoritos e preferências de Tema.
 
-## 🚀 Como Executar o Projeto
 
-Como o projeto utiliza **ES6 Modules** (`type="module"`), não é possível abri-lo diretamente com um duplo clique no arquivo `index.html`. É necessário um servidor local.
+Primeiro projeto que eu tentei fazer
+No momento o Visual do site está pronto mas as funcionalidades dele estão quebradas
 
-1.  Clone este repositório:
-    ```bash
-    git clone [https://github.com/seu-usuario/dueldex.git](https://github.com/seu-usuario/dueldex.git)
-    ```
-2.  Abra a pasta do projeto no seu editor de código favorito (ex: VS Code).
-3.  Inicie um servidor local. 
-    *   *Dica: Se usar o VS Code, instale a extensão **Live Server** e clique em "Go Live".*
-4.  Acesse a aplicação no seu navegador (geralmente em `http://localhost:5500`).
+<img width="1920" height="937" alt="image" src="https://github.com/user-attachments/assets/2d59b08a-c94a-4996-bbf1-c8759e2ebac3" />
+
+
+https://guspelepe.github.io/Projeto_Yu_gi_oh/
+
 
 ## 📁 Estrutura do Projeto
 
@@ -83,11 +80,3 @@ O projeto foi organizado de forma modular para facilitar a manutenção e escala
  ┃ ┗ 📜 storage.js          # Manipulação do localStorage
  ┣ 📜 index.html            # Estrutura principal
  ┗ 📜 main.js               # Ponto de entrada e inicialização
-
-Primeiro projeto que eu tentei fazer
-No momento o Visual do site está pronto mas as funcionalidades dele estão quebradas
-
-<img width="1920" height="937" alt="image" src="https://github.com/user-attachments/assets/2d59b08a-c94a-4996-bbf1-c8759e2ebac3" />
-
-
-https://guspelepe.github.io/Projeto_Yu_gi_oh/
