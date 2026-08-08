@@ -11,7 +11,7 @@ export class DeckManager {
     return this.decks;
   }
 
-  criarDeck(nome) {
+  criarDeck(nome, capa = null) {
     if (!nome || nome.trim() === '') {
       alert('Digite um nome para o deck.');
       return false;
@@ -20,8 +20,8 @@ export class DeckManager {
       alert('Já existe um deck com este nome.');
       return false;
     }
-    this.decks.push({ nome: nome.trim(), cartas: [] });
-    setDecks(this.decks);
+    this.decks.push({ nome: nome.trim(), cartas: [], capa: capa });
+    setDecks(this.decks); // 🔥 Correto, sem _salvar
     return true;
   }
 
@@ -80,15 +80,6 @@ export class DeckManager {
   getDeck(index) {
     return this.decks[index] || null;
   }
-  // components/DeckManager.js (adicione no final da classe)
-
-  _salvar() {
-    // Importa setDecks do storage
-    const { setDecks } = require('../utils/storage.js'); // ou import se for módulo
-    setDecks(this.decks);
-  }
-
-    // components/DeckManager.js (adicione no final da classe)
 
   duplicarDeck(index, novoNome) {
     if (index < 0 || index >= this.decks.length) return false;
@@ -108,8 +99,7 @@ export class DeckManager {
       capa: original.capa ? { ...original.capa } : null, // copia a capa
     };
     this.decks.push(copia);
-    this._salvar();
+    setDecks(this.decks);
     return true;
   }
 }
-

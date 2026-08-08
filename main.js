@@ -7,7 +7,7 @@ import { CardList } from './components/CardList.js';
 import { Modal } from './components/Modal.js';
 import { Favorites } from './components/Favorites.js';
 import { DeckListUI } from './components/DeckListUI.js';
-import { isFavorito } from './utils/storage.js';
+import { isFavorito, getFavoritos } from './utils/storage.js';
 
 // ===== ELEMENTOS =====
 const container = document.getElementById('lista-cartas');
@@ -75,7 +75,6 @@ async function carregarCartas(params = {}, pagina = 0) {
 
 // ===== FUNÇÃO DE BUSCA COM FILTROS =====
 function realizarBusca() {
-  // 🔥 RESTAURA O CONTAINER AO ESTADO PERFEITO DA LISTA DE CARTAS
   container.className = 'lista-personagens';
   container.style.cssText = ''; 
 
@@ -95,7 +94,6 @@ function realizarBusca() {
   if (tipo && tipo !== 'all') params.type = tipo;
   if (nivel && nivel !== 'all') params.level = nivel;
 
-  // Mostra a paginação ao buscar
   mostrarPaginacao();
   carregarCartas(params, 0);
 }
@@ -136,7 +134,7 @@ function atualizarBotoes() {
   if (btnProximo) btnProximo.disabled = paginaAtual >= totalPaginas - 1 || totalPaginas === 0;
 }
 
-// ===== EVENTOS DE PÁGINA =====
+// ===== EVENTOS DE PÁGINA (COM SCROLL SUAVE) =====
 btnAnterior?.addEventListener('click', () => {
   if (paginaAtual > 0) {
     const params = {};
@@ -145,6 +143,8 @@ btnAnterior?.addEventListener('click', () => {
     if (tipoFiltroAtual && tipoFiltroAtual !== 'all') params.type = tipoFiltroAtual;
     if (nivelFiltroAtual && nivelFiltroAtual !== 'all') params.level = nivelFiltroAtual;
     carregarCartas(params, paginaAtual - 1);
+    // 🔥 ROLA A TELA ATÉ O TOPO DA LISTA
+    setTimeout(() => container.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
   }
 });
 
@@ -156,6 +156,8 @@ btnProximo?.addEventListener('click', () => {
     if (tipoFiltroAtual && tipoFiltroAtual !== 'all') params.type = tipoFiltroAtual;
     if (nivelFiltroAtual && nivelFiltroAtual !== 'all') params.level = nivelFiltroAtual;
     carregarCartas(params, paginaAtual + 1);
+    // 🔥 ROLA A TELA ATÉ O TOPO DA LISTA
+    setTimeout(() => container.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
   }
 });
 
@@ -169,7 +171,6 @@ selectAtributo.addEventListener('change', realizarBusca);
 selectTipo.addEventListener('change', realizarBusca);
 selectNivel.addEventListener('change', realizarBusca);
 
-// Botão "Limpar filtros"
 btnLimpar?.addEventListener('click', () => {
   inputNome.value = '';
   selectAtributo.value = 'all';
@@ -178,22 +179,43 @@ btnLimpar?.addEventListener('click', () => {
   realizarBusca();
 });
 
-// ===== FAVORITOS =====
-document.getElementById('btn-favoritos').addEventListener('click', () => {
-  const favoritos = cacheCartas.filter(carta => isFavorito(carta.id));
-  if (favoritos.length === 0) {
+// ===== FAVORITOS (CORRIGIDO) =====
+document.getElementById('btn-favoritos').addEventListener('click', async () => {
+  const favoritosIds = getFavoritos(); // Pega os IDs do localStorage
+  
+  if (favoritosIds.length === 0) {
     container.innerHTML = '<p class="sem-resultados">Nenhuma carta favoritada.</p>';
     contadorPagina.textContent = '❤️ 0 favoritos';
     btnAnterior.disabled = true;
     btnProximo.disabled = true;
     return;
   }
-  // 🔥 Para favoritos, também reseta o container
+
+  // 🔥 Pega as cartas que já estão no cache
+  let favoritosCache = favoritosIds.map(id => cacheCartas.find(c => c.id === id)).filter(c => c !== undefined);
+  
+  // 🔥 Se faltar alguma carta no cache (porque foi favoritada em outra página), busca na API
+  if (favoritosCache.length < favoritosIds.length) {
+    const idsFaltando = favoritosIds.filter(id => !favoritosCache.find(c => c.id === id));
+    try {
+      for (let id of idsFaltando) {
+        // Usa a função do yugioh.js que aceita ID
+        const resultado = await buscarCartas({ id: id }, 0, 1);
+        if (resultado.data && resultado.data.length > 0) {
+          favoritosCache.push(resultado.data[0]);
+          adicionarAoCache(resultado.data); // Adiciona ao cache global também
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao buscar favoritos faltantes:', error);
+    }
+  }
+
   container.className = 'lista-personagens';
   container.style.cssText = '';
   esconderPaginacao();
-  cardList.setCartas(favoritos, 1);
-  contadorPagina.textContent = `❤️ ${favoritos.length} favoritos`;
+  cardList.setCartas(favoritosCache, 1);
+  contadorPagina.textContent = `❤️ ${favoritosCache.length} favoritos`;
   btnAnterior.disabled = true;
   btnProximo.disabled = true;
 });
@@ -225,11 +247,7 @@ function mostrarPaginacao() {
 }
 
 // ===== CARREGAMENTO INICIAL =====
-// A barra de pesquisa fica vazia
 inputNome.value = '';
-
-// Carrega a primeira página SEM FILTRO (todas as cartas)
-// A ordem será por ID (números primeiro)
 termoBuscaAtual = '';
 carregarCartas({}, 0);
 
@@ -237,32 +255,6 @@ carregarCartas({}, 0);
 document.addEventListener('paginaAtualizada', () => {
   atualizarContador();
   atualizarBotoes();
-});
-
-// ===== MODO ESCURO / CLARO =====
-const btnTema = document.getElementById('btn-tema');
-const temaSalvo = localStorage.getItem('tema') || 'light';
-
-// Aplica o tema salvo
-if (temaSalvo === 'dark') {
-  document.documentElement.setAttribute('data-theme', 'dark');
-  btnTema.textContent = '☀️';
-} else {
-  document.documentElement.removeAttribute('data-theme');
-  btnTema.textContent = '🌙';
-}
-
-btnTema?.addEventListener('click', () => {
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  if (isDark) {
-    document.documentElement.removeAttribute('data-theme');
-    localStorage.setItem('tema', 'light');
-    btnTema.textContent = '🌙';
-  } else {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    localStorage.setItem('tema', 'dark');
-    btnTema.textContent = '☀️';
-  }
 });
 
 // ==========================================

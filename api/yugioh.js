@@ -12,10 +12,16 @@ const BASE_URL = 'https://db.ygoprodeck.com/api/v7';
 export async function buscarCartas(params = {}, offset = 0, num = 20) {
   const queryParams = new URLSearchParams();
 
-  // 🔥 Converte 'name' para 'fname' (busca difusa)
+  // Converte 'name' para 'fname' (busca difusa)
   if (params.name) {
     queryParams.append('fname', params.name);
     delete params.name;
+  }
+
+  // 🔥 Adiciona suporte para ID (usado pelos favoritos)
+  if (params.id) {
+    queryParams.append('id', params.id);
+    delete params.id;
   }
 
   // Adiciona os demais filtros

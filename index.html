@@ -20,14 +20,13 @@
   <link rel="stylesheet" href="src/css/responsivo.css" />
 </head>
 <body>
-  <!-- HEADER (ÚNICO E CORRETO) -->
+  <!-- HEADER COM LOGO E FILTROS NA MESMA LINHA -->
   <header class="cabecalho">
-    <h1 class="titulo">DuelDex</h1>
-    <button id="btn-tema" class="btn-tema" aria-label="Alternar tema">🌙</button>
-  </header>
-
-  <main>
-    <!-- FILTROS -->
+    <h1 class="titulo">
+      <img src="./src/imagens/imagens/logo.png" alt="Logo DuelDex" class="logo-site" />
+    </h1>
+    
+    <!-- BARRA DE PESQUISA AGORA DENTRO DO HEADER -->
     <div id="filtros">
       <input type="text" id="input-nome" placeholder="Buscar..." />
 
@@ -72,14 +71,16 @@
         <option value="12">12</option>
       </select>
 
-      <button id="btn-limpar-filtros" title="Limpar filtros">🧹</button>
+      <button id="btn-limpar-filtros">Limpar</button>
       <button id="btn-buscar">Buscar</button>
-      <button id="btn-favoritos">❤️</button>
-      <button id="btn-todos">📚</button>
-      <button id="btn-decks">📚 Decks</button>
+      <button id="btn-favoritos">Favoritos</button>
+      <button id="btn-todos">Todos</button>
+      <button id="btn-decks">Decks</button>
     </div>
+  </header>
 
-    <!-- LISTA DE CARTAS -->
+  <main>
+    <!-- CONTAINER DAS CARTAS -->
     <ul class="lista-personagens" id="lista-cartas"></ul>
 
     <!-- PAGINAÇÃO -->
@@ -89,6 +90,13 @@
       <button id="btn-proximo" disabled>Próximo</button>
     </div>
   </main>
+
+  <!-- 🔥 FOOTER (RODAPÉ) COM CRÉDITOS -->
+  <footer class="rodape">
+    <p>Projeto desenvolvido apenas para estudos.</p>
+    <p>Dados fornecidos pela <a href="https://db.ygoprodeck.com/" target="_blank">YGOPRODeck API</a>.</p>
+    <p>Desenvolvido por <a href="https://github.com/Guspelepe" target="_blank">Guspelepe</a> | <a href="https://github.com/Guspelepe/Projeto_Yu_gi_oh-WIP-" target="_blank">Repositório do Projeto</a></p>
+  </footer>
 
   <!-- SCRIPT PRINCIPAL -->
   <script type="module" src="main.js"></script>

@@ -15,7 +15,6 @@ export class DeckListUI {
 
   // ===== RENDERIZAR LISTA DE DECKS =====
   renderizarLista() {
-    // 🔥 REMOVE A INTERFERÊNCIA DO FUNDO DO SITE
     this.container.className = '';
     this.container.style.cssText = `
       display: block !important;
@@ -32,7 +31,7 @@ export class DeckListUI {
       this.container.innerHTML = `
         <div class="deck-lista-vazia">
           <p>Nenhum deck criado ainda.</p>
-          <button class="btn-criar-deck">➕ Criar novo deck</button>
+          <button class="btn-criar-deck">+ Criar novo deck</button>
         </div>
       `;
       this.container.querySelector('.btn-criar-deck')?.addEventListener('click', () => this.criarNovoDeck());
@@ -40,8 +39,11 @@ export class DeckListUI {
     }
 
     let html = `<div class="deck-lista" style="width: 100%; background: rgba(0, 0, 0, 0.3); border-radius: 20px; backdrop-filter: blur(6px); padding: 24px; box-sizing: border-box; min-height: 500px;">
-      <h2>Meus Decks</h2>
-      <button class="btn-criar-deck">➕ Criar novo deck</button>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 10px;">
+        <h2 style="color: #ffd700; font-family: 'Yugioh', serif; font-size: 28px; margin: 0;">Meus Decks</h2>
+        <button id="btn-voltar-dos-decks" style="background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 600;">⬅ Voltar</button>
+      </div>
+      <button class="btn-criar-deck" style="background: linear-gradient(135deg, #00d4ff, #8351fe); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: 'Inter', sans-serif; margin-bottom: 24px; transition: transform 0.2s;">+ Criar novo deck</button>
       <div class="deck-grid">`;
 
     decks.forEach((deck, index) => {
@@ -55,10 +57,8 @@ export class DeckListUI {
           <p>${qtd}/80 cartas</p>
           <div class="deck-acoes">
             <button class="btn-abrir-deck" data-index="${index}">Abrir</button>
-            <button class="btn-editar-deck" data-index="${index}">✏️ Editar</button>
-            <button class="btn-duplicar-deck" data-index="${index}">📋 Duplicar</button>
-            <button class="btn-aleatorio-deck" data-index="${index}">🎲 Aleatório</button>
-            <button class="btn-excluir-deck" data-index="${index}">🗑️</button>
+            <button class="btn-editar-deck" data-index="${index}">Editar</button>
+            <button class="btn-excluir-deck" data-index="${index}">Excluir</button>
           </div>
         </div>
       `;
@@ -67,20 +67,22 @@ export class DeckListUI {
     html += `</div></div>`;
     this.container.innerHTML = html;
 
-    // 🔥 FORÇA O GRID DOS DECKS
+    this.container.querySelector('#btn-voltar-dos-decks')?.addEventListener('click', () => {
+      document.getElementById('btn-todos').click();
+    });
+
     const grid = this.container.querySelector('.deck-grid');
     if (grid) {
       grid.style.cssText = `
         display: grid !important;
         grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)) !important;
         gap: 24px !important;
-        margin-top: 16px !important;
+        margin-top: 0 !important;
         width: 100% !important;
         box-sizing: border-box !important;
       `;
     }
 
-    // Eventos
     this.container.querySelector('.btn-criar-deck')?.addEventListener('click', () => this.criarNovoDeck());
     this.container.querySelectorAll('.btn-abrir-deck').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -92,18 +94,6 @@ export class DeckListUI {
       btn.addEventListener('click', async (e) => {
         const idx = parseInt(e.target.dataset.index);
         await this.abrirEditor(idx);
-      });
-    });
-    this.container.querySelectorAll('.btn-duplicar-deck').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const idx = parseInt(e.target.dataset.index);
-        this.duplicarDeck(idx);
-      });
-    });
-    this.container.querySelectorAll('.btn-aleatorio-deck').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const idx = parseInt(e.target.dataset.index);
-        this.preencherAleatorio(idx);
       });
     });
     this.container.querySelectorAll('.btn-excluir-deck').forEach(btn => {
@@ -142,53 +132,6 @@ export class DeckListUI {
     if (this.deckManager.criarDeck(nome, capa)) this.renderizarLista();
   }
 
-  // ===== DUPLICAR DECK =====
-  duplicarDeck(index) {
-    const deck = this.deckManager.getDeck(index);
-    if (!deck) return;
-    const novoNome = prompt('Nome do deck duplicado:', deck.nome + ' (cópia)');
-    if (novoNome !== null && novoNome.trim() !== '') {
-      if (this.deckManager.duplicarDeck(index, novoNome.trim())) {
-        this.renderizarLista();
-      }
-    }
-  }
-
-  // ===== PREENCHER ALEATÓRIO =====
-  preencherAleatorio(index) {
-    const deck = this.deckManager.getDeck(index);
-    if (!deck) return;
-
-    let cache = window.__cacheCartas || [];
-    if (cache.length === 0) {
-      alert('Nenhuma carta carregada. Faça uma busca primeiro.');
-      return;
-    }
-
-    const quantidade = parseInt(prompt('Quantas cartas adicionar? (máx 80, padrão 40)', '40')) || 40;
-    const limite = Math.min(quantidade, 80 - deck.cartas.length);
-
-    if (limite <= 0) {
-      alert('O deck já está cheio (80/80).');
-      return;
-    }
-
-    const shuffled = [...cache].sort(() => Math.random() - 0.5);
-    const selecionadas = shuffled.slice(0, limite);
-
-    let adicionadas = 0;
-    selecionadas.forEach(carta => {
-      const qtd = deck.cartas.filter(c => c.id === carta.id).length;
-      if (qtd < 3 && deck.cartas.length < 80) {
-        this.deckManager.adicionarCarta(index, carta);
-        adicionadas++;
-      }
-    });
-
-    alert(`✅ ${adicionadas} cartas adicionadas a "${deck.nome}"!`);
-    this.renderizarLista();
-  }
-
   // ===== ABRIR EDITOR =====
   async abrirEditor(index) {
     if (!this.editor) {
@@ -210,7 +153,6 @@ export class DeckListUI {
     this.deckAtual = index;
     const tipos = this.contarTipos(deck.cartas);
 
-    // 🔥 AQUI TAMBÉM: O container pai fica transparente. O vidro é o wrapper.
     this.container.innerHTML = '';
     this.container.className = '';
     this.container.style.cssText = `
@@ -228,7 +170,7 @@ export class DeckListUI {
     const sidebar = document.createElement('div');
     sidebar.className = 'deck-sidebar';
     sidebar.innerHTML = `
-      <h3>Buscar carta</h3>
+      <h3 style="font-family: 'Yugioh', serif; color: #000;">Buscar carta</h3>
       <input type="text" id="deck-pesquisa-input" placeholder="Nome da carta..." />
       <select id="deck-pesquisa-atributo">
         <option value="">Todos atributos</option>
@@ -247,18 +189,18 @@ export class DeckListUI {
     const mainArea = document.createElement('div');
     mainArea.className = 'deck-main-area';
     mainArea.innerHTML = `
-      <div class="deck-header">
-        <div>
-          <h2>${deck.nome} (<span id="deck-contador">${deck.cartas.length}</span>/80)</h2>
-          <div class="deck-tipos">
-            <span class="tipo-monstro">🟢 Monstros: ${tipos.monstros}</span>
-            <span class="tipo-magia">🔵 Magias: ${tipos.magias}</span>
-            <span class="tipo-armadilha">🟣 Armadilhas: ${tipos.armadilhas}</span>
+      <div class="deck-header" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap;">
+          <h2 style="color: #fff; font-family: 'Yugioh', serif; font-size: 28px; margin: 0;">${deck.nome} <span style="font-size: 16px; font-family: 'Inter', sans-serif; color: #aaa;">(${deck.cartas.length}/80)</span></h2>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn-exportar-deck" data-index="${index}">Exportar</button>
+            <button class="btn-voltar-decks" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s;">⬅ Voltar</button>
           </div>
         </div>
-        <div>
-          <button class="btn-exportar-deck" data-index="${index}">📤 Exportar</button>
-          <button class="btn-voltar-decks">⬅️ Voltar</button>
+        <div class="deck-estatisticas" style="display: flex; gap: 24px; background: rgba(0, 0, 0, 0.5); padding: 12px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); width: fit-content;">
+          <span style="display: flex; align-items: center; gap: 8px; color: #fff; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px;"><span style="color: #4caf50;">●</span> Monstros: <span style="color: #fff;">${tipos.monstros}</span></span>
+          <span style="display: flex; align-items: center; gap: 8px; color: #fff; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px;"><span style="color: #42a5f5;">●</span> Magias: <span style="color: #fff;">${tipos.magias}</span></span>
+          <span style="display: flex; align-items: center; gap: 8px; color: #fff; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px;"><span style="color: #ab47bc;">●</span> Armadilhas: <span style="color: #fff;">${tipos.armadilhas}</span></span>
         </div>
       </div>
       <div id="deck-cartas-container" class="deck-cartas-grid"></div>
@@ -271,9 +213,11 @@ export class DeckListUI {
     const btnExportar = mainArea.querySelector('.btn-exportar-deck');
     btnExportar?.addEventListener('click', () => this.exportarDeck(index));
 
+    const btnVoltar = mainArea.querySelector('.btn-voltar-decks');
+    btnVoltar?.addEventListener('click', () => this.renderizarLista());
+
     this.renderizarCartasDeck();
     this.configurarPesquisa(index, sidebar);
-    mainArea.querySelector('.btn-voltar-decks').addEventListener('click', () => this.renderizarLista());
   }
 
   // ===== EXPORTAR DECK =====
@@ -380,7 +324,7 @@ export class DeckListUI {
           const cartaJSON = JSON.stringify(carta).replace(/"/g, '&quot;');
           html += `
             <li class="resultado-item">
-              <img src="${carta.card_images[0].image_url}" alt="${carta.name}" width="40" />
+              <img src="${carta.card_images[0].image_url}" alt="${carta.name}" width="38" />
               <span>${carta.name}</span>
               <span class="qtd">${qtd}/3</span>
               ${podeAdicionar ? `<button class="btn-add-carta-deck" data-carta="${cartaJSON}">+</button>` : '<span class="limite">✔</span>'}
@@ -391,20 +335,36 @@ export class DeckListUI {
         resultadosDiv.innerHTML = html;
 
         resultadosDiv.querySelectorAll('.btn-add-carta-deck').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const carta = JSON.parse(btn.dataset.carta.replace(/&quot;/g, '"'));
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            let carta;
+            try {
+              carta = JSON.parse(btn.dataset.carta.replace(/&quot;/g, '"'));
+            } catch (error) {
+              console.error("❌ ERRO AO LER A CARTA:", error);
+              return;
+            }
+            
             if (this.deckManager.adicionarCarta(index, carta)) {
               this.renderizarCartasDeck();
-              document.getElementById('deck-contador').textContent = deck.cartas.length;
-              const tipos = this.contarTipos(deck.cartas);
-              const header = document.querySelector('.deck-tipos');
-              if (header) {
-                header.innerHTML = `
-                  <span class="tipo-monstro">🟢 Monstros: ${tipos.monstros}</span>
-                  <span class="tipo-magia">🔵 Magias: ${tipos.magias}</span>
-                  <span class="tipo-armadilha">🟣 Armadilhas: ${tipos.armadilhas}</span>
-                `;
+              
+              const deckAtualizado = this.deckManager.getDeck(index);
+              const novaQtd = deckAtualizado.cartas.filter(c => c.id === carta.id).length;
+              
+              const itemLi = btn.closest('li.resultado-item');
+              if (itemLi) {
+                const qtdSpan = itemLi.querySelector('.qtd');
+                if (qtdSpan) qtdSpan.textContent = `${novaQtd}/3`;
+                
+                if (novaQtd >= 3) {
+                  const checkSpan = document.createElement('span');
+                  checkSpan.className = 'limite';
+                  checkSpan.textContent = '✔';
+                  btn.replaceWith(checkSpan);
+                }
               }
+              document.dispatchEvent(new CustomEvent('deckAtualizado'));
+            } else {
               realizarPesquisa();
             }
           });
@@ -432,9 +392,10 @@ export class DeckListUI {
       return;
     }
 
+    // 🔥 CORREÇÃO AQUI: Trocamos de 5 para 3 colunas no JS
     container.style.cssText = `
       display: grid !important;
-      grid-template-columns: repeat(5, 1fr) !important;
+      grid-template-columns: repeat(3, 1fr) !important;
       gap: 24px !important;
       width: 100% !important;
       flex: 1 !important;

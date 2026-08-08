@@ -13,7 +13,7 @@ export function criarCard(carta, onCardClick) {
   const favorito = isFavorito(carta.id);
   const estrelas = carta.level ? '★'.repeat(carta.level) : '';
 
-  // ===== CONSTRÓI O HTML DA CARTA =====
+    // ===== CONSTRÓI O HTML DA CARTA (SEM ESTRELAS E SEM ATK/DEF) =====
   li.innerHTML = `
     <div class="carta-container">
       ${favorito ? '<div class="carta-favorito-icone">❤️</div>' : ''}
@@ -22,14 +22,7 @@ export function criarCard(carta, onCardClick) {
              alt="${carta.name}" 
              class="carta-imagem"
              loading="lazy" />
-        ${carta.level ? `<div class="carta-nivel">${estrelas}</div>` : ''}
       </div>
-      ${(carta.type && (carta.type.includes('Spell') || carta.type.includes('Trap'))) ? '' : `
-        <div class="carta-ataque-defesa">
-          <span>ATK ${carta.atk || '?'}</span>
-          <span>DEF ${carta.def || '?'}</span>
-        </div>
-      `}
       <!-- Efeito holográfico -->
       <div class="holographic-effect"></div>
     </div>

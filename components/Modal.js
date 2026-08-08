@@ -19,6 +19,7 @@ export class Modal {
     this.modal = document.createElement('div');
     this.modal.className = 'modal-container';
 
+    // 🔥 Adiciona um container colorido para o nome + ícone do atributo
     this.modal.innerHTML = `
       <button class="modal-fechar">✕</button>
       <div class="modal-conteudo">
@@ -26,7 +27,10 @@ export class Modal {
           <img class="modal-imagem" src="" alt="Carta" />
         </div>
         <div class="modal-info">
-          <h2 class="modal-nome"></h2>
+          <div class="modal-nome-container" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; background: #1a1a2e;">
+            <h2 class="modal-nome" style="margin: 0; color: #fff; font-family: 'Yugioh', serif; font-size: 26px; flex: 1;"></h2>
+            <span class="modal-atributo-icone" style="font-size: 24px; text-shadow: 0 0 10px rgba(255,255,255,0.5);"></span>
+          </div>
           <div class="modal-detalhes">
             <p><strong>Tipo:</strong> <span class="modal-tipo"></span></p>
             <p><strong>Atributo:</strong> <span class="modal-atributo"></span></p>
@@ -40,8 +44,8 @@ export class Modal {
             <p class="modal-texto-descricao"></p>
           </div>
           <div class="modal-acoes">
-            <button class="modal-favoritar">🤍 Favoritar</button>
-            <button class="modal-adicionar-deck">➕ Adicionar ao Deck</button>
+            <button class="modal-favoritar">Favoritar</button>
+            <button class="modal-adicionar-deck">Adicionar ao Deck</button>
           </div>
         </div>
       </div>
@@ -76,9 +80,13 @@ export class Modal {
     this.modal.querySelector('.modal-raca').textContent = carta.race || '?';
     this.modal.querySelector('.modal-texto-descricao').textContent = carta.desc || 'Sem descrição';
 
-    // Cor de fundo por atributo
-    const cor = this.obterCorAtributo(carta.attribute);
-    this.modal.style.setProperty('--modal-cor', cor);
+    // 🔥 Cor e ícone do Atributo
+    const { cor, icone } = this.obterCorETextoAtributo(carta.attribute);
+    const nomeContainer = this.modal.querySelector('.modal-nome-container');
+    nomeContainer.style.background = cor;
+    
+    const iconeSpan = this.modal.querySelector('.modal-atributo-icone');
+    iconeSpan.textContent = icone;
 
     // Configura botão favoritar
     this.configurarBotaoFavoritar();
@@ -148,7 +156,6 @@ export class Modal {
         return;
       }
 
-      // Mostra opções em um prompt simples
       let opcoes = decks.map((d, i) => `${i+1}: ${d.nome} (${d.cartas.length}/80)`).join('\n');
       const escolha = prompt(`Adicionar "${carta.name}" a qual deck?\n\n${opcoes}\n\nDigite o número:`);
       if (escolha === null) return;
@@ -167,16 +174,17 @@ export class Modal {
     });
   }
 
-  obterCorAtributo(atributo) {
-    const cores = {
-      'DARK': '#2a1a3a',
-      'LIGHT': '#f5e6d3',
-      'FIRE': '#8b3a1f',
-      'WATER': '#1a3a5c',
-      'EARTH': '#3d2b1f',
-      'WIND': '#2d5a5a',
-      'DIVINE': '#8b7a3a'
+  // 🔥 Nova função para ajudar com as cores e ícones
+  obterCorETextoAtributo(atributo) {
+    const mapa = {
+      'DARK': { cor: '#2a1a3a', icone: '🌑' },
+      'LIGHT': { cor: '#f5e6d3', icone: '☀️' },
+      'FIRE': { cor: '#8b3a1f', icone: '🔥' },
+      'WATER': { cor: '#1a3a5c', icone: '💧' },
+      'EARTH': { cor: '#3d2b1f', icone: '🪨' },
+      'WIND': { cor: '#2d5a5a', icone: '💨' },
+      'DIVINE': { cor: '#8b7a3a', icone: '👼' }
     };
-    return cores[atributo] || '#2d2d2d';
+    return mapa[atributo] || { cor: '#2d2d2d', icone: '❓' };
   }
 }
